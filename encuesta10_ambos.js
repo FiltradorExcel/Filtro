@@ -1,58 +1,58 @@
-/* ============================================================
-   ENCUESTA 10 - ESTRÉS ACADÉMICO 2026-2
+/*
+============================================================
+ENCUESTA 10 - ESTRÉS ACADÉMICO 2026-2
+FILTRO PARA AMBOS GRUPOS:
 
-   FILTRO PARA AMBOS GRUPOS:
-   - ESTUDIANTES DE CHILCA
-   - NO ESTUDIANTES DE CHILCA
+- ESTUDIANTES DE CHILCA
+- NO ESTUDIANTES DE CHILCA
 
-   REGLA:
-   - No se excluye por responder Sí o No en Chilca.
-   - Las 10 preguntas deben estar completas.
-   - Si falta una sola respuesta, se descarta toda la fila.
+REGLAS:
 
-   IMPORTANTE:
-   La estructura del CSV tiene dos ramas:
+- No se excluye por responder Sí o No en Chilca.
+- Las 10 preguntas deben estar completas.
+- Si falta una sola respuesta, se descarta toda la fila.
 
-   SI pertenece a Chilca:
-   Columna 1  = Sí/No Chilca
-   Columna 2  = Género
-   Columna 3  = Edad
-   Columna 4  = Carrera
-   Columna 5  = Ciclo
+FUENTES DE DATOS:
 
-   SI NO pertenece a Chilca:
-   Columna 6  = Universidad
-   Columna 7  = Otra universidad
-   Columna 8  = Género
-   Columna 9  = Edad
-   Columna 10 = Carrera
-   Columna 11 = Ciclo
+1. Google Sheets mediante datosGoogle.js
+2. CSV como respaldo
 
-   Preguntas compartidas:
-   Columna 12 = Cantidad de cursos
-   Columna 13 = Horas de sueño
-   Columna 14 = Trabajo
-   Columna 15 = Alimentación
-   Columna 21 = Procrastinación
-   Columna 23 = Síntomas durante evaluaciones
-   ============================================================ */
+IMPORTANTE:
+
+datosGoogle.js SOLO descarga los datos puros.
+
+Este archivo es responsable de:
+- interpretar las columnas
+- separar Chilca / No Chilca
+- seleccionar las 10 preguntas
+- descartar respuestas incompletas
+- mostrar resultados
+- exportar Excel
+
+============================================================
+*/
 
 "use strict";
 
 
-/* ============================================================
-   VARIABLES GLOBALES
-   ============================================================ */
+/*
+============================================================
+VARIABLES GLOBALES
+============================================================
+*/
 
 let encuesta10AmbosDatos = [];
 let encuesta10AmbosEncabezados = [];
 let encuesta10AmbosResultados = [];
 let encuesta10AmbosArchivo = null;
+let encuesta10AmbosFuente = "";
 
 
-/* ============================================================
-   ELEMENTOS DEL DOM
-   ============================================================ */
+/*
+============================================================
+ELEMENTOS DEL DOM
+============================================================
+*/
 
 const archivoEncuesta10Ambos =
     document.getElementById("archivoEncuesta10Ambos");
@@ -88,9 +88,11 @@ const btnExportarEncuesta10Ambos =
     document.getElementById("btnExportarEncuesta10Ambos");
 
 
-/* ============================================================
-   CONFIGURACIÓN DE LAS 10 PREGUNTAS LÓGICAS
-   ============================================================ */
+/*
+============================================================
+CONFIGURACIÓN DE LAS 10 PREGUNTAS LÓGICAS
+============================================================
+*/
 
 const CONFIG_ENCUESTA_10_AMBOS = [
 
@@ -147,84 +149,95 @@ const CONFIG_ENCUESTA_10_AMBOS = [
 ];
 
 
-/* ============================================================
-   ESTRUCTURA REAL DEL CSV
+/*
+============================================================
+ESTRUCTURA REAL DE GOOGLE / CSV
 
-   Índices JavaScript (comienzan en 0)
+ÍNDICES JAVASCRIPT
 
-   0  = Marca temporal
-   1  = Pregunta identificación Chilca
+0  = Marca temporal
 
-   RAMA CHILCA
-   2  = Género
-   3  = Edad
-   4  = Carrera
-   5  = Ciclo
+RAMA CHILCA
+1  = Identificación Chilca
+2  = Género
+3  = Edad
+4  = Carrera
+5  = Ciclo
 
-   RAMA NO CHILCA
-   6  = Universidad
-   7  = Otra universidad
-   8  = Género
-   9  = Edad
-   10 = Carrera
-   11 = Ciclo
+RAMA NO CHILCA
+6  = Universidad
+7  = Otra universidad
+8  = Género
+9  = Edad
+10 = Carrera
+11 = Ciclo
 
-   CAMPOS COMPARTIDOS
-   12 = Cantidad de cursos
-   13 = Horas de sueño
-   14 = Trabajo
-   15 = Alimentación
+CAMPOS COMPARTIDOS
+12 = Cantidad de cursos
+13 = Horas de sueño
+14 = Trabajo
+15 = Alimentación
+16 = Estrés 1
+17 = Estrés 2
+18 = Estrés 3
+19 = Estrés 4
+20 = Estrés 5
+21 = Procrastinación
+22 = Estrés 7
+23 = Síntomas
+24 = Rendimiento
+25 = Comparación
+26 = Estrés afecta estudio
+27 = Estrés afecta calificaciones
+28 = No entrega
+29 = Nivel de estrés
+30 = Percepción
 
-   16 = Estrés 1
-   17 = Estrés 2
-   18 = Estrés 3
-   19 = Estrés 4
-   20 = Estrés 5
-   21 = Estrés 6 - Procrastinación
-   22 = Estrés 7
-
-   23 = Síntomas
-   ============================================================ */
-
-
-/* ============================================================
-   ÍNDICES DE COLUMNAS
-   ============================================================ */
+============================================================
+*/
 
 const INDICES_ENCUESTA_10_AMBOS = {
 
     chilca: {
+
         identificacion: 1,
         genero: 2,
         edad: 3,
         carrera: 4,
         ciclo: 5
+
     },
 
     noChilca: {
+
         universidad: 6,
         otraUniversidad: 7,
         genero: 8,
         edad: 9,
         carrera: 10,
         ciclo: 11
+
     },
 
     compartidas: {
+
         cursos: 12,
         sueno: 13,
         trabajo: 14,
         alimentacion: 15,
         procrastinacion: 21,
         sintomas: 23
+
     }
 
 };
 
 
-/* ============================================================
-   NORMALIZAR TEXTO
-   ============================================================ */
+/*
+============================================================
+NORMALIZAR TEXTO
+============================================================
+*/
 
 function normalizarTextoEncuesta10Ambos(texto) {
 
@@ -238,14 +251,21 @@ function normalizarTextoEncuesta10Ambos(texto) {
 }
 
 
-/* ============================================================
-   REPARAR TEXTO MAL CODIFICADO
-   ============================================================ */
+/*
+============================================================
+REPARAR TEXTO MAL CODIFICADO
+============================================================
+*/
 
 function repararTextoEncuesta10Ambos(texto) {
 
-    if (texto === null || texto === undefined) {
+    if (
+        texto === null ||
+        texto === undefined
+    ) {
+
         return "";
+
     }
 
     let valor = String(texto);
@@ -276,6 +296,7 @@ function repararTextoEncuesta10Ambos(texto) {
         "â": "”",
 
         "Â": ""
+
     };
 
     Object.keys(reemplazos).forEach(clave => {
@@ -291,191 +312,16 @@ function repararTextoEncuesta10Ambos(texto) {
 }
 
 
-/* ============================================================
-   DETECTAR SEPARADOR CSV
-   ============================================================ */
-
-function detectarSeparadorEncuesta10Ambos(texto) {
-
-    const primeraLinea =
-        texto.split(/\r?\n/)[0] || "";
-
-    const separadores = [
-        ",",
-        ";",
-        "\t"
-    ];
-
-    let mejorSeparador = ",";
-    let mayorCantidad = -1;
-
-    separadores.forEach(separador => {
-
-        const cantidad =
-            primeraLinea.split(separador).length - 1;
-
-        if (cantidad > mayorCantidad) {
-
-            mayorCantidad = cantidad;
-            mejorSeparador = separador;
-
-        }
-
-    });
-
-    return mejorSeparador;
-
-}
-
-
-/* ============================================================
-   PARSEAR CSV
-   ============================================================ */
-
-function parsearCSVEncuesta10Ambos(texto, separador) {
-
-    const filas = [];
-
-    let filaActual = [];
-    let campoActual = "";
-    let dentroComillas = false;
-
-    for (let i = 0; i < texto.length; i++) {
-
-        const caracter = texto[i];
-        const siguiente = texto[i + 1];
-
-        /* ---------------------------------------------
-           COMILLAS
-           --------------------------------------------- */
-
-        if (caracter === '"') {
-
-            if (
-                dentroComillas &&
-                siguiente === '"'
-            ) {
-
-                campoActual += '"';
-                i++;
-
-            } else {
-
-                dentroComillas = !dentroComillas;
-
-            }
-
-            continue;
-
-        }
-
-
-        /* ---------------------------------------------
-           SEPARADOR
-           --------------------------------------------- */
-
-        if (
-            caracter === separador &&
-            !dentroComillas
-        ) {
-
-            filaActual.push(campoActual);
-            campoActual = "";
-
-            continue;
-
-        }
-
-
-        /* ---------------------------------------------
-           SALTO DE LÍNEA
-           --------------------------------------------- */
-
-        if (
-            (
-                caracter === "\n" ||
-                caracter === "\r"
-            ) &&
-            !dentroComillas
-        ) {
-
-            if (
-                caracter === "\r" &&
-                siguiente === "\n"
-            ) {
-
-                i++;
-
-            }
-
-            filaActual.push(campoActual);
-            campoActual = "";
-
-            if (
-                filaActual.length > 1 ||
-                filaActual.some(
-                    valor =>
-                        String(valor).trim() !== ""
-                )
-            ) {
-
-                filas.push(filaActual);
-
-            }
-
-            filaActual = [];
-
-            continue;
-
-        }
-
-
-        /* ---------------------------------------------
-           CARÁCTER NORMAL
-           --------------------------------------------- */
-
-        campoActual += caracter;
-
-    }
-
-
-    /* ---------------------------------------------
-       ÚLTIMA FILA
-       --------------------------------------------- */
-
-    if (
-        campoActual !== "" ||
-        filaActual.length > 0
-    ) {
-
-        filaActual.push(campoActual);
-
-        if (
-            filaActual.length > 1 ||
-            filaActual.some(
-                valor =>
-                    String(valor).trim() !== ""
-            )
-        ) {
-
-            filas.push(filaActual);
-
-        }
-
-    }
-
-    return filas;
-
-}
-
-
-/* ============================================================
-   OBTENER VALOR DE UNA COLUMNA
-   ============================================================ */
+/*
+============================================================
+OBTENER VALOR DE UNA COLUMNA
+============================================================
+*/
 
 function obtenerValorEncuesta10Ambos(fila, indice) {
 
     if (
+        !Array.isArray(fila) ||
         indice === undefined ||
         indice === null ||
         indice < 0
@@ -492,22 +338,27 @@ function obtenerValorEncuesta10Ambos(fila, indice) {
 }
 
 
-/* ============================================================
-   DETERMINAR GRUPO
+/*
+============================================================
+DETERMINAR GRUPO
 
-   SI  -> Chilca
-   NO  -> No Chilca
-
-   No se excluye ningún grupo.
-   ============================================================ */
+Sí → Chilca
+No → No Chilca
+============================================================
+*/
 
 function determinarGrupoEncuesta10Ambos(fila) {
 
     const valor = normalizarTextoEncuesta10Ambos(
 
         obtenerValorEncuesta10Ambos(
+
             fila,
-            INDICES_ENCUESTA_10_AMBOS.chilca.identificacion
+
+            INDICES_ENCUESTA_10_AMBOS
+                .chilca
+                .identificacion
+
         )
 
     );
@@ -535,75 +386,85 @@ function determinarGrupoEncuesta10Ambos(fila) {
 }
 
 
-/* ============================================================
-   CONSTRUIR RESPUESTA UNIFICADA
-
-   ESTA ES LA PARTE IMPORTANTE:
-
-   Para Chilca:
-      género = columna 2
-      edad   = columna 3
-      carrera= columna 4
-      ciclo  = columna 5
-
-   Para No Chilca:
-      género = columna 8
-      edad   = columna 9
-      carrera= columna 10
-      ciclo  = columna 11
-
-   Los demás campos son compartidos.
-   ============================================================ */
+/*
+============================================================
+CONSTRUIR RESPUESTA UNIFICADA
+============================================================
+*/
 
 function construirRespuestaEncuesta10Ambos(fila) {
 
     const grupo =
         determinarGrupoEncuesta10Ambos(fila);
 
+
     let indiceGenero;
     let indiceEdad;
     let indiceCarrera;
     let indiceCiclo;
 
-    /* ---------------------------------------------
-       RAMA CHILCA
-       --------------------------------------------- */
+
+    /*
+    --------------------------------------------------------
+    RAMA CHILCA
+    --------------------------------------------------------
+    */
 
     if (grupo === "Chilca") {
 
         indiceGenero =
-            INDICES_ENCUESTA_10_AMBOS.chilca.genero;
+            INDICES_ENCUESTA_10_AMBOS
+                .chilca
+                .genero;
 
         indiceEdad =
-            INDICES_ENCUESTA_10_AMBOS.chilca.edad;
+            INDICES_ENCUESTA_10_AMBOS
+                .chilca
+                .edad;
 
         indiceCarrera =
-            INDICES_ENCUESTA_10_AMBOS.chilca.carrera;
+            INDICES_ENCUESTA_10_AMBOS
+                .chilca
+                .carrera;
 
         indiceCiclo =
-            INDICES_ENCUESTA_10_AMBOS.chilca.ciclo;
+            INDICES_ENCUESTA_10_AMBOS
+                .chilca
+                .ciclo;
 
     }
 
-    /* ---------------------------------------------
-       RAMA NO CHILCA
-       --------------------------------------------- */
+
+    /*
+    --------------------------------------------------------
+    RAMA NO CHILCA
+    --------------------------------------------------------
+    */
 
     else if (grupo === "No Chilca") {
 
         indiceGenero =
-            INDICES_ENCUESTA_10_AMBOS.noChilca.genero;
+            INDICES_ENCUESTA_10_AMBOS
+                .noChilca
+                .genero;
 
         indiceEdad =
-            INDICES_ENCUESTA_10_AMBOS.noChilca.edad;
+            INDICES_ENCUESTA_10_AMBOS
+                .noChilca
+                .edad;
 
         indiceCarrera =
-            INDICES_ENCUESTA_10_AMBOS.noChilca.carrera;
+            INDICES_ENCUESTA_10_AMBOS
+                .noChilca
+                .carrera;
 
         indiceCiclo =
-            INDICES_ENCUESTA_10_AMBOS.noChilca.ciclo;
+            INDICES_ENCUESTA_10_AMBOS
+                .noChilca
+                .ciclo;
 
     }
+
 
     else {
 
@@ -612,51 +473,62 @@ function construirRespuestaEncuesta10Ambos(fila) {
     }
 
 
-    /* ---------------------------------------------
-       UNIVERSIDAD
-
-       Para Chilca:
-       UNMSM - Sede Chilca
-
-       Para No Chilca:
-       se utiliza la universidad seleccionada.
-       Si dice "Otra", se usa el campo
-       "Otra universidad".
-       --------------------------------------------- */
+    /*
+    --------------------------------------------------------
+    UNIVERSIDAD
+    --------------------------------------------------------
+    */
 
     let universidad = "";
 
+
     if (grupo === "Chilca") {
 
-        universidad = "UNMSM - Sede Chilca";
+        universidad =
+            "UNMSM - Sede Chilca";
 
     }
+
 
     else if (grupo === "No Chilca") {
 
         const universidadSeleccionada =
             obtenerValorEncuesta10Ambos(
+
                 fila,
-                INDICES_ENCUESTA_10_AMBOS.noChilca.universidad
+
+                INDICES_ENCUESTA_10_AMBOS
+                    .noChilca
+                    .universidad
+
             );
+
 
         const otraUniversidad =
             obtenerValorEncuesta10Ambos(
+
                 fila,
-                INDICES_ENCUESTA_10_AMBOS.noChilca.otraUniversidad
+
+                INDICES_ENCUESTA_10_AMBOS
+                    .noChilca
+                    .otraUniversidad
+
             );
+
 
         const universidadNormalizada =
             normalizarTextoEncuesta10Ambos(
                 universidadSeleccionada
             );
 
+
         if (
             universidadNormalizada === "otra" &&
             otraUniversidad
         ) {
 
-            universidad = otraUniversidad;
+            universidad =
+                otraUniversidad;
 
         }
 
@@ -670,12 +542,15 @@ function construirRespuestaEncuesta10Ambos(fila) {
     }
 
 
-    /* ---------------------------------------------
-       CAMPOS COMPARTIDOS
-       --------------------------------------------- */
+    /*
+    --------------------------------------------------------
+    CAMPOS COMPARTIDOS
+    --------------------------------------------------------
+    */
 
     const indicesCompartidos =
-        INDICES_ENCUESTA_10_AMBOS.compartidas;
+        INDICES_ENCUESTA_10_AMBOS
+            .compartidas;
 
 
     const respuesta = {
@@ -756,28 +631,11 @@ function construirRespuestaEncuesta10Ambos(fila) {
 }
 
 
-/* ============================================================
-   VERIFICAR SI UNA RESPUESTA ESTÁ COMPLETA
-
-   IMPORTANTE:
-
-   La comprobación se realiza DESPUÉS de construir
-   la respuesta unificada.
-
-   De esta forma:
-
-   Chilca:
-      se revisan columnas 2-5
-
-   No Chilca:
-      se revisan columnas 8-11
-
-   Y ambos utilizan las mismas columnas
-   para las preguntas restantes.
-
-   Si falta UNA sola respuesta:
-      la fila completa se descarta.
-   ============================================================ */
+/*
+============================================================
+VERIFICAR LAS 10 PREGUNTAS
+============================================================
+*/
 
 function respuestaCompletaEncuesta10Ambos(respuesta) {
 
@@ -796,8 +654,11 @@ function respuestaCompletaEncuesta10Ambos(respuesta) {
 
         const pregunta =
             CONFIG_ENCUESTA_10_AMBOS.find(
+
                 item =>
-                    item.numero === numeroPregunta
+                    item.numero ===
+                    numeroPregunta
+
             );
 
 
@@ -830,88 +691,117 @@ function respuestaCompletaEncuesta10Ambos(respuesta) {
 }
 
 
-/* ============================================================
-   PROCESAR ENCUESTA
-   ============================================================ */
+/*
+============================================================
+PROCESAR FILAS
 
-function procesarEncuesta10Ambos(texto) {
+ESTA ES LA FUNCIÓN PRINCIPAL DEL FILTRO.
+
+Recibe directamente:
+
+- filas
+- encabezados
+- fuente de datos
+
+Puede trabajar tanto con:
+- Google
+- CSV
+============================================================
+*/
+
+function procesarFilasEncuesta10Ambos(
+
+    filas,
+    encabezados = [],
+    fuente = "Datos",
+    nombreArchivo = ""
+
+) {
 
     try {
 
-        /* ---------------------------------------------
-           DETECTAR SEPARADOR
-           --------------------------------------------- */
+        /*
+        ----------------------------------------------------
+        VALIDACIÓN
+        ----------------------------------------------------
+        */
 
-        const separador =
-            detectarSeparadorEncuesta10Ambos(texto);
-
-
-        /* ---------------------------------------------
-           PARSEAR CSV
-           --------------------------------------------- */
-
-        const filas =
-            parsearCSVEncuesta10Ambos(
-                texto,
-                separador
-            );
-
-
-        if (!filas.length) {
+        if (!Array.isArray(filas)) {
 
             throw new Error(
-                "No se encontraron datos en el archivo."
+                "No se recibió un arreglo de filas válido."
             );
 
         }
 
 
-        /* ---------------------------------------------
-           ENCABEZADOS
-           --------------------------------------------- */
-
-        encuesta10AmbosEncabezados =
-            filas[0].map(encabezado =>
-
-                repararTextoEncuesta10Ambos(
-                    encabezado
-                ).trim()
-
-            );
-
-
-        /* ---------------------------------------------
-           DATOS
-           --------------------------------------------- */
+        /*
+        ----------------------------------------------------
+        GUARDAR DATOS
+        ----------------------------------------------------
+        */
 
         encuesta10AmbosDatos =
-            filas.slice(1);
+            filas;
 
+        encuesta10AmbosEncabezados =
+            Array.isArray(encabezados)
+                ? encabezados
+                : [];
+
+        encuesta10AmbosFuente =
+            fuente;
+
+
+        /*
+        ----------------------------------------------------
+        NOMBRE DEL ARCHIVO / FUENTE
+        ----------------------------------------------------
+        */
+
+        if (nombreArchivo) {
+
+            encuesta10AmbosArchivo = {
+                name: nombreArchivo
+            };
+
+        }
+
+        else {
+
+            encuesta10AmbosArchivo = null;
+
+        }
+
+
+        /*
+        ----------------------------------------------------
+        TOTAL
+        ----------------------------------------------------
+        */
 
         totalEncuesta10Ambos.textContent =
             encuesta10AmbosDatos.length;
 
 
-        /* ---------------------------------------------
-           VALIDAR ESTRUCTURA MÍNIMA
+        /*
+        ----------------------------------------------------
+        VALIDAR ESTRUCTURA
+        ----------------------------------------------------
+        */
 
-           Necesitamos como mínimo 24 columnas
-           para llegar hasta síntomas (índice 23).
-           --------------------------------------------- */
-
-        const cantidadColumnas =
-            encuesta10AmbosEncabezados.length;
-
-
-        if (cantidadColumnas < 24) {
+        if (
+            encuesta10AmbosEncabezados.length &&
+            encuesta10AmbosEncabezados.length < 24
+        ) {
 
             throw new Error(
 
-                "La estructura del CSV no coincide con la encuesta esperada. " +
+                "La estructura de la encuesta no coincide. " +
 
                 "Se detectaron " +
 
-                cantidadColumnas +
+                encuesta10AmbosEncabezados.length +
 
                 " columnas y se necesitan al menos 24."
 
@@ -920,45 +810,65 @@ function procesarEncuesta10Ambos(texto) {
         }
 
 
-        /* ---------------------------------------------
-           YA NO HACEMOS DETECCIÓN DINÁMICA
-
-           La estructura real del CSV está definida
-           por posiciones, igual que app.js.
-           --------------------------------------------- */
+        /*
+        ----------------------------------------------------
+        PREGUNTAS
+        ----------------------------------------------------
+        */
 
         preguntasDetectadas10Ambos.textContent =
             "10/10";
 
 
-        /* ---------------------------------------------
-           CONTADORES
-           --------------------------------------------- */
+        /*
+        ----------------------------------------------------
+        CONTADORES
+        ----------------------------------------------------
+        */
 
         let cantidadChilca = 0;
+
         let cantidadNoChilca = 0;
+
         let cantidadNoIdentificada = 0;
+
         let cantidadDescartadas = 0;
 
+
+        /*
+        ----------------------------------------------------
+        RESULTADOS
+        ----------------------------------------------------
+        */
 
         encuesta10AmbosResultados = [];
 
 
-        /* ---------------------------------------------
-           PROCESAR TODAS LAS FILAS
-           --------------------------------------------- */
+        /*
+        ----------------------------------------------------
+        PROCESAR CADA FILA
+        ----------------------------------------------------
+        */
 
         encuesta10AmbosDatos.forEach(
+
             (fila, indiceFila) => {
 
-                /* -----------------------------------------
-                   EVITAR FILAS TOTALMENTE VACÍAS
-                   ----------------------------------------- */
+                /*
+                --------------------------------------------
+                FILA VACÍA
+                --------------------------------------------
+                */
 
                 const filaTieneDatos =
+                    Array.isArray(fila) &&
                     fila.some(
+
                         valor =>
-                            String(valor ?? "").trim() !== ""
+                            String(
+                                valor ?? ""
+                            ).trim() !== ""
+
                     );
 
 
@@ -969,9 +879,11 @@ function procesarEncuesta10Ambos(texto) {
                 }
 
 
-                /* -----------------------------------------
-                   DETERMINAR GRUPO
-                   ----------------------------------------- */
+                /*
+                --------------------------------------------
+                DETERMINAR GRUPO
+                --------------------------------------------
+                */
 
                 const grupo =
                     determinarGrupoEncuesta10Ambos(
@@ -979,9 +891,11 @@ function procesarEncuesta10Ambos(texto) {
                     );
 
 
-                /* -----------------------------------------
-                   CONTABILIZAR GRUPO
-                   ----------------------------------------- */
+                /*
+                --------------------------------------------
+                CONTAR GRUPO
+                --------------------------------------------
+                */
 
                 if (grupo === "Chilca") {
 
@@ -999,28 +913,26 @@ function procesarEncuesta10Ambos(texto) {
 
                     cantidadNoIdentificada++;
 
-                    /*
-                     * Si no podemos determinar si la persona
-                     * respondió Sí o No, no podemos asignar
-                     * correctamente las columnas condicionales.
-                     *
-                     * Por seguridad, se descarta.
-                     */
-
                     cantidadDescartadas++;
 
                     console.warn(
-                        "Fila descartada: grupo no identificado.",
+
+                        "⚠️ Fila descartada: grupo no identificado.",
+
                         {
-                            filaCSV:
+
+                            fila:
                                 indiceFila + 2,
+
                             valor:
                                 fila[
                                     INDICES_ENCUESTA_10_AMBOS
                                         .chilca
                                         .identificacion
                                 ]
+
                         }
+
                     );
 
                     return;
@@ -1028,9 +940,11 @@ function procesarEncuesta10Ambos(texto) {
                 }
 
 
-                /* -----------------------------------------
-                   CONSTRUIR RESPUESTA UNIFICADA
-                   ----------------------------------------- */
+                /*
+                --------------------------------------------
+                CONSTRUIR RESPUESTA
+                --------------------------------------------
+                */
 
                 const respuesta =
                     construirRespuestaEncuesta10Ambos(
@@ -1038,9 +952,11 @@ function procesarEncuesta10Ambos(texto) {
                     );
 
 
-                /* -----------------------------------------
-                   COMPROBAR LAS 10 PREGUNTAS
-                   ----------------------------------------- */
+                /*
+                --------------------------------------------
+                VALIDAR 10 PREGUNTAS
+                --------------------------------------------
+                */
 
                 const completa =
                     respuestaCompletaEncuesta10Ambos(
@@ -1048,26 +964,33 @@ function procesarEncuesta10Ambos(texto) {
                     );
 
 
-                /* -----------------------------------------
-                   SI FALTA UNA RESPUESTA:
-
-                   DESCARTAR TODA LA FILA
-                   ----------------------------------------- */
+                /*
+                --------------------------------------------
+                DESCARTAR SI FALTA UNA
+                --------------------------------------------
+                */
 
                 if (!completa) {
 
                     cantidadDescartadas++;
 
                     console.warn(
-                        "Fila descartada por datos incompletos.",
+
+                        "⚠️ Fila descartada por datos incompletos:",
+
                         {
-                            filaCSV:
+
+                            fila:
                                 indiceFila + 2,
+
                             grupo:
                                 grupo,
+
                             respuesta:
                                 respuesta
+
                         }
+
                     );
 
                     return;
@@ -1075,25 +998,36 @@ function procesarEncuesta10Ambos(texto) {
                 }
 
 
-                /* -----------------------------------------
-                   GUARDAR RESPUESTA
-                   ----------------------------------------- */
+                /*
+                --------------------------------------------
+                FILA ORIGINAL
+                --------------------------------------------
+                */
 
                 respuesta["Fila original"] =
                     indiceFila + 2;
 
+
+                /*
+                --------------------------------------------
+                GUARDAR
+                --------------------------------------------
+                */
 
                 encuesta10AmbosResultados.push(
                     respuesta
                 );
 
             }
+
         );
 
 
-        /* ---------------------------------------------
-           ACTUALIZAR ESTADÍSTICAS
-           --------------------------------------------- */
+        /*
+        ----------------------------------------------------
+        ACTUALIZAR ESTADÍSTICAS
+        ----------------------------------------------------
+        */
 
         respuestasChilca10Ambos.textContent =
             cantidadChilca;
@@ -1108,43 +1042,53 @@ function procesarEncuesta10Ambos(texto) {
             cantidadDescartadas;
 
 
-        /* ---------------------------------------------
-           MENSAJE
-           --------------------------------------------- */
+        /*
+        ----------------------------------------------------
+        MENSAJE
+        ----------------------------------------------------
+        */
 
         mensajeEncuesta10Ambos.textContent =
 
-            "Proceso completado. Se encontraron " +
+            `Datos cargados desde ${fuente}. ` +
+
+            `Se encontraron ` +
 
             encuesta10AmbosResultados.length +
 
-            " respuestas completas de ambos grupos. " +
+            ` respuestas completas. ` +
 
-            "Se descartaron " +
+            `Se descartaron ` +
 
             cantidadDescartadas +
 
-            " respuestas con datos incompletos.";
+            ` respuestas por datos incompletos.`;
 
 
-        /* ---------------------------------------------
-           MOSTRAR TABLA
-           --------------------------------------------- */
+        /*
+        ----------------------------------------------------
+        MOSTRAR PREVIEW
+        ----------------------------------------------------
+        */
 
         mostrarPreviewEncuesta10Ambos();
 
 
-        /* ---------------------------------------------
-           BOTÓN EXPORTAR
-           --------------------------------------------- */
+        /*
+        ----------------------------------------------------
+        BOTÓN EXPORTAR
+        ----------------------------------------------------
+        */
 
         btnExportarEncuesta10Ambos.disabled =
             encuesta10AmbosResultados.length === 0;
 
 
-        /* ---------------------------------------------
-           DIAGNÓSTICO EN CONSOLA
-           --------------------------------------------- */
+        /*
+        ----------------------------------------------------
+        DIAGNÓSTICO
+        ----------------------------------------------------
+        */
 
         console.log(
             "================================================"
@@ -1156,6 +1100,11 @@ function procesarEncuesta10Ambos(texto) {
 
         console.log(
             "================================================"
+        );
+
+        console.log(
+            "Fuente:",
+            fuente
         );
 
         console.log(
@@ -1193,24 +1142,27 @@ function procesarEncuesta10Ambos(texto) {
         );
 
 
-        /* ---------------------------------------------
-           DIAGNÓSTICO DETALLADO
-
-           Contamos cuántas respuestas completas
-           existen por grupo.
-           --------------------------------------------- */
+        /*
+        ----------------------------------------------------
+        COMPLETAS POR GRUPO
+        ----------------------------------------------------
+        */
 
         const completasChilca =
             encuesta10AmbosResultados.filter(
+
                 respuesta =>
                     respuesta["Sede Chilca"] === "Sí"
+
             ).length;
 
 
         const completasNoChilca =
             encuesta10AmbosResultados.filter(
+
                 respuesta =>
                     respuesta["Sede Chilca"] === "No"
+
             ).length;
 
 
@@ -1225,12 +1177,30 @@ function procesarEncuesta10Ambos(texto) {
         );
 
 
+        /*
+        ----------------------------------------------------
+        PREVIEW DE PRIMERA RESPUESTA
+        ----------------------------------------------------
+        */
+
+        if (
+            encuesta10AmbosResultados.length > 0
+        ) {
+
+            console.log(
+                "📋 Primera respuesta filtrada:",
+                encuesta10AmbosResultados[0]
+            );
+
+        }
+
+
     }
 
     catch (error) {
 
         console.error(
-            "Error Encuesta 10 Ambos:",
+            "❌ Error Encuesta 10 Ambos:",
             error
         );
 
@@ -1261,9 +1231,499 @@ function procesarEncuesta10Ambos(texto) {
 }
 
 
-/* ============================================================
-   MOSTRAR PREVIEW
-   ============================================================ */
+/*
+============================================================
+CARGAR DIRECTAMENTE DESDE GOOGLE
+
+Esta es la función que sustituye al proceso manual
+de seleccionar el CSV.
+
+IMPORTANTE:
+
+datosGoogle.js debe estar cargado antes que este archivo.
+============================================================
+*/
+
+async function cargarEncuesta10AmbosDesdeGoogle() {
+
+    try {
+
+        /*
+        ----------------------------------------------------
+        VERIFICAR QUE datosGoogle.js ESTÉ DISPONIBLE
+        ----------------------------------------------------
+        */
+
+        if (
+            typeof obtenerDatosGoogle !==
+            "function"
+        ) {
+
+            console.warn(
+                "⚠️ datosGoogle.js no está disponible."
+            );
+
+            return;
+
+        }
+
+
+        /*
+        ----------------------------------------------------
+        MENSAJE
+        ----------------------------------------------------
+        */
+
+        mensajeEncuesta10Ambos.textContent =
+            "Conectando con Google Sheets...";
+
+
+        /*
+        ----------------------------------------------------
+        OBTENER DATOS
+        ----------------------------------------------------
+        */
+
+        const datos =
+            await obtenerDatosGoogle();
+
+
+        /*
+        ----------------------------------------------------
+        VALIDAR
+        ----------------------------------------------------
+        */
+
+        if (
+            !datos ||
+            !Array.isArray(datos.filas)
+        ) {
+
+            throw new Error(
+                "Google no devolvió filas válidas."
+            );
+
+        }
+
+
+        /*
+        ----------------------------------------------------
+        PROCESAR
+        ----------------------------------------------------
+        */
+
+        procesarFilasEncuesta10Ambos(
+
+            datos.filas,
+
+            datos.encabezados,
+
+            "Google Sheets",
+
+            "Encuesta_UNMSM_2026_2"
+
+        );
+
+
+        /*
+        ----------------------------------------------------
+        ACTUALIZAR NOMBRE EN INTERFAZ
+        ----------------------------------------------------
+        */
+
+        if (nombreArchivoEncuesta10Ambos) {
+
+            nombreArchivoEncuesta10Ambos.textContent =
+                "Datos cargados automáticamente desde Google Sheets.";
+
+        }
+
+
+        console.log(
+            "✅ Encuesta 10 Ambos cargada desde Google."
+        );
+
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "❌ No se pudo cargar la encuesta desde Google:",
+            error
+        );
+
+
+        mensajeEncuesta10Ambos.textContent =
+            "No se pudieron cargar los datos desde Google. Puedes utilizar el CSV como respaldo.";
+
+    }
+
+}
+
+
+/*
+============================================================
+DETECTAR SEPARADOR CSV
+============================================================
+*/
+
+function detectarSeparadorEncuesta10Ambos(texto) {
+
+    const primeraLinea =
+        texto.split(/\r?\n/)[0] || "";
+
+
+    const separadores = [
+        ",",
+        ";",
+        "\t"
+    ];
+
+
+    let mejorSeparador = ",";
+
+    let mayorCantidad = -1;
+
+
+    separadores.forEach(
+
+        separador => {
+
+            const cantidad =
+                primeraLinea
+                    .split(separador)
+                    .length - 1;
+
+
+            if (
+                cantidad >
+                mayorCantidad
+            ) {
+
+                mayorCantidad =
+                    cantidad;
+
+                mejorSeparador =
+                    separador;
+
+            }
+
+        }
+
+    );
+
+
+    return mejorSeparador;
+
+}
+
+
+/*
+============================================================
+PARSEAR CSV
+============================================================
+*/
+
+function parsearCSVEncuesta10Ambos(
+    texto,
+    separador
+) {
+
+    const filas = [];
+
+    let filaActual = [];
+
+    let campoActual = "";
+
+    let dentroComillas = false;
+
+
+    for (
+        let i = 0;
+        i < texto.length;
+        i++
+    ) {
+
+        const caracter =
+            texto[i];
+
+        const siguiente =
+            texto[i + 1];
+
+
+        /*
+        ----------------------------------------------------
+        COMILLAS
+        ----------------------------------------------------
+        */
+
+        if (
+            caracter === '"'
+        ) {
+
+            if (
+                dentroComillas &&
+                siguiente === '"'
+            ) {
+
+                campoActual += '"';
+
+                i++;
+
+            }
+
+            else {
+
+                dentroComillas =
+                    !dentroComillas;
+
+            }
+
+            continue;
+
+        }
+
+
+        /*
+        ----------------------------------------------------
+        SEPARADOR
+        ----------------------------------------------------
+        */
+
+        if (
+            caracter === separador &&
+            !dentroComillas
+        ) {
+
+            filaActual.push(
+                campoActual
+            );
+
+            campoActual = "";
+
+            continue;
+
+        }
+
+
+        /*
+        ----------------------------------------------------
+        SALTO DE LÍNEA
+        ----------------------------------------------------
+        */
+
+        if (
+
+            (
+                caracter === "\n" ||
+                caracter === "\r"
+            ) &&
+
+            !dentroComillas
+
+        ) {
+
+            if (
+                caracter === "\r" &&
+                siguiente === "\n"
+            ) {
+
+                i++;
+
+            }
+
+
+            filaActual.push(
+                campoActual
+            );
+
+            campoActual = "";
+
+
+            if (
+
+                filaActual.length > 1 ||
+
+                filaActual.some(
+                    valor =>
+                        String(
+                            valor
+                        ).trim() !== ""
+                )
+
+            ) {
+
+                filas.push(
+                    filaActual
+                );
+
+            }
+
+
+            filaActual = [];
+
+            continue;
+
+        }
+
+
+        /*
+        ----------------------------------------------------
+        CARÁCTER NORMAL
+        ----------------------------------------------------
+        */
+
+        campoActual += caracter;
+
+    }
+
+
+    /*
+    --------------------------------------------------------
+    ÚLTIMA FILA
+    --------------------------------------------------------
+    */
+
+    if (
+        campoActual !== "" ||
+        filaActual.length > 0
+    ) {
+
+        filaActual.push(
+            campoActual
+        );
+
+
+        if (
+
+            filaActual.length > 1 ||
+
+            filaActual.some(
+                valor =>
+                    String(
+                        valor
+                    ).trim() !== ""
+            )
+
+        ) {
+
+            filas.push(
+                filaActual
+            );
+
+        }
+
+    }
+
+
+    return filas;
+
+}
+
+
+/*
+============================================================
+CARGAR CSV COMO RESPALDO
+============================================================
+*/
+
+function procesarEncuesta10Ambos(texto) {
+
+    try {
+
+        const separador =
+            detectarSeparadorEncuesta10Ambos(
+                texto
+            );
+
+
+        const filasCSV =
+            parsearCSVEncuesta10Ambos(
+                texto,
+                separador
+            );
+
+
+        if (!filasCSV.length) {
+
+            throw new Error(
+                "No se encontraron datos en el archivo."
+            );
+
+        }
+
+
+        /*
+        ----------------------------------------------------
+        PRIMERA FILA = ENCABEZADOS
+        ----------------------------------------------------
+        */
+
+        const encabezados =
+            filasCSV[0].map(
+
+                encabezado =>
+                    repararTextoEncuesta10Ambos(
+                        encabezado
+                    ).trim()
+
+            );
+
+
+        /*
+        ----------------------------------------------------
+        RESTO = DATOS
+        ----------------------------------------------------
+        */
+
+        const filas =
+            filasCSV.slice(1);
+
+
+        /*
+        ----------------------------------------------------
+        PROCESAR CON EL MISMO MOTOR
+        ----------------------------------------------------
+        */
+
+        procesarFilasEncuesta10Ambos(
+
+            filas,
+
+            encabezados,
+
+            "Archivo CSV",
+
+            encuesta10AmbosArchivo
+                ? encuesta10AmbosArchivo.name
+                : "encuesta_estres_2026_2"
+
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "❌ Error procesando CSV:",
+            error
+        );
+
+
+        mensajeEncuesta10Ambos.textContent =
+            "Error: " + error.message;
+
+    }
+
+}
+
+
+/*
+============================================================
+MOSTRAR PREVIEW
+============================================================
+*/
 
 function mostrarPreviewEncuesta10Ambos() {
 
@@ -1275,21 +1735,29 @@ function mostrarPreviewEncuesta10Ambos() {
 
 
     const thead =
-        tablaEncuesta10Ambos.querySelector("thead");
+        tablaEncuesta10Ambos
+            .querySelector("thead");
+
 
     const tbody =
-        tablaEncuesta10Ambos.querySelector("tbody");
+        tablaEncuesta10Ambos
+            .querySelector("tbody");
 
 
     thead.innerHTML = "";
+
     tbody.innerHTML = "";
 
 
-    /* ---------------------------------------------
-       SIN RESULTADOS
-       --------------------------------------------- */
+    /*
+    --------------------------------------------------------
+    SIN RESULTADOS
+    --------------------------------------------------------
+    */
 
-    if (!encuesta10AmbosResultados.length) {
+    if (
+        !encuesta10AmbosResultados.length
+    ) {
 
         tbody.innerHTML = `
 
@@ -1310,63 +1778,86 @@ function mostrarPreviewEncuesta10Ambos() {
     }
 
 
-    /* ---------------------------------------------
-       ENCABEZADOS
-       --------------------------------------------- */
+    /*
+    --------------------------------------------------------
+    ENCABEZADOS
+    --------------------------------------------------------
+    */
 
     const trHead =
         document.createElement("tr");
 
 
     CONFIG_ENCUESTA_10_AMBOS.forEach(
+
         pregunta => {
 
             const th =
                 document.createElement("th");
 
+
             th.textContent =
                 pregunta.nombre;
+
 
             trHead.appendChild(th);
 
         }
+
     );
 
 
-    /* ---------------------------------------------
-       COLUMNA SEDE
-       --------------------------------------------- */
+    /*
+    --------------------------------------------------------
+    SEDE
+    --------------------------------------------------------
+    */
 
     const thSede =
         document.createElement("th");
 
+
     thSede.textContent =
         "Sede Chilca";
 
-    trHead.appendChild(thSede);
+
+    trHead.appendChild(
+        thSede
+    );
 
 
-    /* ---------------------------------------------
-       COLUMNA UNIVERSIDAD
-       --------------------------------------------- */
+    /*
+    --------------------------------------------------------
+    UNIVERSIDAD
+    --------------------------------------------------------
+    */
 
     const thUniversidad =
         document.createElement("th");
 
+
     thUniversidad.textContent =
         "Universidad";
 
-    trHead.appendChild(thUniversidad);
+
+    trHead.appendChild(
+        thUniversidad
+    );
 
 
-    thead.appendChild(trHead);
+    thead.appendChild(
+        trHead
+    );
 
 
-    /* ---------------------------------------------
-       FILAS
-       --------------------------------------------- */
+    /*
+    --------------------------------------------------------
+    FILAS
+    --------------------------------------------------------
+    */
 
     encuesta10AmbosResultados.forEach(
+
         respuesta => {
 
             const tr =
@@ -1374,49 +1865,70 @@ function mostrarPreviewEncuesta10Ambos() {
 
 
             CONFIG_ENCUESTA_10_AMBOS.forEach(
+
                 pregunta => {
 
                     const td =
                         document.createElement("td");
 
+
                     td.textContent =
-                        respuesta[pregunta.nombre] ?? "";
+                        respuesta[
+                            pregunta.nombre
+                        ] ?? "";
+
 
                     tr.appendChild(td);
 
                 }
+
             );
 
 
-            /* -----------------------------------------
-               SEDE
-               ----------------------------------------- */
+            /*
+            SEDE
+            */
 
             const tdSede =
                 document.createElement("td");
 
+
             tdSede.textContent =
-                respuesta["Sede Chilca"] ?? "";
+                respuesta[
+                    "Sede Chilca"
+                ] ?? "";
 
-            tr.appendChild(tdSede);
+
+            tr.appendChild(
+                tdSede
+            );
 
 
-            /* -----------------------------------------
-               UNIVERSIDAD
-               ----------------------------------------- */
+            /*
+            UNIVERSIDAD
+            */
 
             const tdUniversidad =
                 document.createElement("td");
 
+
             tdUniversidad.textContent =
-                respuesta["Universidad"] ?? "";
+                respuesta[
+                    "Universidad"
+                ] ?? "";
 
-            tr.appendChild(tdUniversidad);
+
+            tr.appendChild(
+                tdUniversidad
+            );
 
 
-            tbody.appendChild(tr);
+            tbody.appendChild(
+                tr
+            );
 
         }
+
     );
 
 
@@ -1425,13 +1937,17 @@ function mostrarPreviewEncuesta10Ambos() {
 }
 
 
-/* ============================================================
-   EXPORTAR A EXCEL
-   ============================================================ */
+/*
+============================================================
+EXPORTAR A EXCEL
+============================================================
+*/
 
 function exportarEncuesta10Ambos() {
 
-    if (!encuesta10AmbosResultados.length) {
+    if (
+        !encuesta10AmbosResultados.length
+    ) {
 
         alert(
             "No existen respuestas completas para exportar."
@@ -1442,7 +1958,9 @@ function exportarEncuesta10Ambos() {
     }
 
 
-    if (typeof XLSX === "undefined") {
+    if (
+        typeof XLSX === "undefined"
+    ) {
 
         alert(
             "No se encontró la librería XLSX."
@@ -1453,45 +1971,58 @@ function exportarEncuesta10Ambos() {
     }
 
 
-    /* ---------------------------------------------
-       HOJA PRINCIPAL
-
-       Se exportan las 10 preguntas + grupo +
-       universidad + fila original.
-       --------------------------------------------- */
+    /*
+    --------------------------------------------------------
+    HOJA PRINCIPAL
+    --------------------------------------------------------
+    */
 
     const datosExcel =
         encuesta10AmbosResultados.map(
+
             respuesta => {
 
                 const fila = {};
 
 
                 CONFIG_ENCUESTA_10_AMBOS.forEach(
+
                     pregunta => {
 
-                        fila[pregunta.nombre] =
-                            respuesta[pregunta.nombre];
+                        fila[
+                            pregunta.nombre
+                        ] =
+                            respuesta[
+                                pregunta.nombre
+                            ];
 
                     }
+
                 );
 
 
                 fila["Sede Chilca"] =
-                    respuesta["Sede Chilca"];
+                    respuesta[
+                        "Sede Chilca"
+                    ];
 
 
                 fila["Universidad"] =
-                    respuesta["Universidad"];
+                    respuesta[
+                        "Universidad"
+                    ];
 
 
                 fila["Fila original"] =
-                    respuesta["Fila original"];
+                    respuesta[
+                        "Fila original"
+                    ];
 
 
                 return fila;
 
             }
+
         );
 
 
@@ -1501,35 +2032,49 @@ function exportarEncuesta10Ambos() {
         );
 
 
-    /* ---------------------------------------------
-       AJUSTAR ANCHO DE COLUMNAS
-       --------------------------------------------- */
-
     hojaPreguntas["!cols"] =
         calcularAnchosExcelEncuesta10Ambos(
             datosExcel
         );
 
 
-    /* ---------------------------------------------
-       DIAGNÓSTICO
-       --------------------------------------------- */
+    /*
+    --------------------------------------------------------
+    DIAGNÓSTICO
+    --------------------------------------------------------
+    */
 
     const cantidadChilca =
         encuesta10AmbosResultados.filter(
+
             respuesta =>
-                respuesta["Sede Chilca"] === "Sí"
+                respuesta[
+                    "Sede Chilca"
+                ] === "Sí"
+
         ).length;
 
 
     const cantidadNoChilca =
         encuesta10AmbosResultados.filter(
+
             respuesta =>
-                respuesta["Sede Chilca"] === "No"
+                respuesta[
+                    "Sede Chilca"
+                ] === "No"
+
         ).length;
 
 
     const diagnostico = [
+
+        {
+            "Indicador":
+                "Fuente de datos",
+
+            "Cantidad":
+                encuesta10AmbosFuente
+        },
 
         {
             "Indicador":
@@ -1544,9 +2089,8 @@ function exportarEncuesta10Ambos() {
                 "Estudiantes de Chilca",
 
             "Cantidad":
-                document.getElementById(
-                    "respuestasChilca10Ambos"
-                ).textContent
+                respuestasChilca10Ambos
+                    .textContent
         },
 
         {
@@ -1554,9 +2098,8 @@ function exportarEncuesta10Ambos() {
                 "No estudiantes de Chilca",
 
             "Cantidad":
-                document.getElementById(
-                    "respuestasNoChilca10Ambos"
-                ).textContent
+                respuestasNoChilca10Ambos
+                    .textContent
         },
 
         {
@@ -1588,9 +2131,8 @@ function exportarEncuesta10Ambos() {
                 "Respuestas descartadas por datos vacíos",
 
             "Cantidad":
-                document.getElementById(
-                    "respuestasDescartadas10Ambos"
-                ).textContent
+                respuestasDescartadas10Ambos
+                    .textContent
         },
 
         {
@@ -1617,15 +2159,17 @@ function exportarEncuesta10Ambos() {
         },
 
         {
-            wch: 20
+            wch: 30
         }
 
     ];
 
 
-    /* ---------------------------------------------
-       CREAR LIBRO
-       --------------------------------------------- */
+    /*
+    --------------------------------------------------------
+    CREAR LIBRO
+    --------------------------------------------------------
+    */
 
     const libro =
         XLSX.utils.book_new();
@@ -1653,19 +2197,38 @@ function exportarEncuesta10Ambos() {
     );
 
 
-    /* ---------------------------------------------
-       DESCARGAR
-       --------------------------------------------- */
+    /*
+    --------------------------------------------------------
+    NOMBRE DEL ARCHIVO
+    --------------------------------------------------------
+    */
 
-    const nombreArchivo =
+    let nombreArchivo =
+        "Encuesta_UNMSM_2026_2";
 
-        encuesta10AmbosArchivo
 
-            ? encuesta10AmbosArchivo.name
-                .replace(/\.[^/.]+$/, "")
+    if (
+        encuesta10AmbosFuente ===
+        "Archivo CSV" &&
+        encuesta10AmbosArchivo &&
+        encuesta10AmbosArchivo.name
+    ) {
 
-            : "encuesta_estres_2026_2";
+        nombreArchivo =
+            encuesta10AmbosArchivo.name
+                .replace(
+                    /\.[^/.]+$/,
+                    ""
+                );
 
+    }
+
+
+    /*
+    --------------------------------------------------------
+    DESCARGAR
+    --------------------------------------------------------
+    */
 
     XLSX.writeFile(
 
@@ -1678,9 +2241,11 @@ function exportarEncuesta10Ambos() {
 }
 
 
-/* ============================================================
-   CALCULAR ANCHOS PARA EXCEL
-   ============================================================ */
+/*
+============================================================
+CALCULAR ANCHOS PARA EXCEL
+============================================================
+*/
 
 function calcularAnchosExcelEncuesta10Ambos(
     datos
@@ -1694,10 +2259,13 @@ function calcularAnchosExcelEncuesta10Ambos(
 
 
     const encabezados =
-        Object.keys(datos[0]);
+        Object.keys(
+            datos[0]
+        );
 
 
     return encabezados.map(
+
         encabezado => {
 
             let maximo =
@@ -1705,16 +2273,20 @@ function calcularAnchosExcelEncuesta10Ambos(
 
 
             datos.forEach(
+
                 fila => {
 
                     const valor =
                         String(
-                            fila[encabezado] ?? ""
+                            fila[
+                                encabezado
+                            ] ?? ""
                         );
 
 
                     if (
-                        valor.length > maximo
+                        valor.length >
+                        maximo
                     ) {
 
                         maximo =
@@ -1723,6 +2295,7 @@ function calcularAnchosExcelEncuesta10Ambos(
                     }
 
                 }
+
             );
 
 
@@ -1742,14 +2315,17 @@ function calcularAnchosExcelEncuesta10Ambos(
             };
 
         }
+
     );
 
 }
 
 
-/* ============================================================
-   AJUSTAR ANCHO DE COLUMNAS DE LA TABLA HTML
-   ============================================================ */
+/*
+============================================================
+AJUSTAR ANCHO DE TABLA HTML
+============================================================
+*/
 
 function ajustarAnchoEncuesta10Ambos() {
 
@@ -1770,8 +2346,10 @@ function ajustarAnchoEncuesta10Ambos() {
     const encabezados = [
 
         ...CONFIG_ENCUESTA_10_AMBOS.map(
+
             pregunta =>
                 pregunta.nombre
+
         ),
 
         "Sede Chilca",
@@ -1783,6 +2361,7 @@ function ajustarAnchoEncuesta10Ambos() {
 
     const anchos =
         encabezados.map(
+
             encabezado => {
 
                 let maximo =
@@ -1790,16 +2369,20 @@ function ajustarAnchoEncuesta10Ambos() {
 
 
                 filas.forEach(
+
                     fila => {
 
                         const valor =
                             String(
-                                fila[encabezado] ?? ""
+                                fila[
+                                    encabezado
+                                ] ?? ""
                             );
 
 
                         if (
-                            valor.length > maximo
+                            valor.length >
+                            maximo
                         ) {
 
                             maximo =
@@ -1808,6 +2391,7 @@ function ajustarAnchoEncuesta10Ambos() {
                         }
 
                     }
+
                 );
 
 
@@ -1827,19 +2411,19 @@ function ajustarAnchoEncuesta10Ambos() {
                 };
 
             }
+
         );
 
 
-    /* ---------------------------------------------
-       Aplicar ancho visual aproximado a la tabla
-       --------------------------------------------- */
-
     const ths =
         tablaEncuesta10Ambos
-            .querySelectorAll("thead th");
+            .querySelectorAll(
+                "thead th"
+            );
 
 
     ths.forEach(
+
         (th, indice) => {
 
             if (anchos[indice]) {
@@ -1853,14 +2437,22 @@ function ajustarAnchoEncuesta10Ambos() {
             }
 
         }
+
     );
 
 }
 
 
-/* ============================================================
-   EVENTO: SELECCIONAR ARCHIVO
-   ============================================================ */
+/*
+============================================================
+EVENTO: SELECCIONAR CSV
+============================================================
+
+EL CSV AHORA ES SOLAMENTE UN RESPALDO.
+
+Google es la fuente principal.
+============================================================
+*/
 
 if (archivoEncuesta10Ambos) {
 
@@ -1893,7 +2485,7 @@ if (archivoEncuesta10Ambos) {
 
 
             mensajeEncuesta10Ambos.textContent =
-                "Leyendo archivo...";
+                "Leyendo archivo CSV...";
 
 
             const lector =
@@ -1935,9 +2527,11 @@ if (archivoEncuesta10Ambos) {
 }
 
 
-/* ============================================================
-   EVENTO: EXPORTAR
-   ============================================================ */
+/*
+============================================================
+EVENTO: EXPORTAR
+============================================================
+*/
 
 if (btnExportarEncuesta10Ambos) {
 
@@ -1952,34 +2546,63 @@ if (btnExportarEncuesta10Ambos) {
 }
 
 
-/* ============================================================
-   INICIO
-   ============================================================ */
+/*
+============================================================
+INICIO AUTOMÁTICO DESDE GOOGLE
+============================================================
+*/
 
-console.log(
-    "================================================"
-);
+window.addEventListener(
 
-console.log(
-    "Encuesta 10 - Filtro de ambos grupos"
-);
+    "load",
 
-console.log(
-    "Estructura condicional basada en app.js"
-);
+    function () {
 
-console.log(
-    "Chilca: columnas 2-5"
-);
+        console.log(
+            "================================================"
+        );
 
-console.log(
-    "No Chilca: columnas 8-11"
-);
+        console.log(
+            "Encuesta 10 - Filtro de ambos grupos"
+        );
 
-console.log(
-    "Campos compartidos: columnas 12-15, 21 y 23"
-);
+        console.log(
+            "Fuente principal: Google Sheets"
+        );
 
-console.log(
-    "================================================"
+        console.log(
+            "CSV disponible como respaldo"
+        );
+
+        console.log(
+            "Chilca: columnas 2-5"
+        );
+
+        console.log(
+            "No Chilca: columnas 8-11"
+        );
+
+        console.log(
+            "Campos compartidos: columnas 12-15, 21 y 23"
+        );
+
+        console.log(
+            "10 preguntas obligatorias"
+        );
+
+        console.log(
+            "================================================"
+        );
+
+
+        /*
+        ----------------------------------------------------
+        CARGAR GOOGLE AUTOMÁTICAMENTE
+        ----------------------------------------------------
+        */
+
+        cargarEncuesta10AmbosDesdeGoogle();
+
+    }
+
 );
