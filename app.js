@@ -1,8 +1,22 @@
 /* ============================================================
-   LIMPIADOR DE ENCUESTA UNMSM - VERSIÓN CORREGIDA
+   LIMPIADOR DE ENCUESTA UNMSM - VERSIÓN GOOGLE + CSV
    ============================================================
 
-   REGLA DEFINITIVA:
+   FUENTES DE DATOS:
+
+   Google Forms
+        ↓
+   Google Sheets
+        ↓
+   datosGoogle.js
+        ↓
+   app.js
+
+   CSV
+        ↓
+   app.js
+
+   REGLA DEFINITIVA DE APP.JS:
 
    - Filas originales 2 a 19:
        EXCLUIDAS
@@ -11,52 +25,21 @@
        VÁLIDAS
 
    IMPORTANTE:
+
    - No se cruzan respuestas entre filas.
    - No se reconstruyen respuestas.
    - No se combinan datos de diferentes estudiantes.
-   - Se trabaja directamente con las posiciones originales
-     de las 31 columnas del CSV de Google Forms.
-
-   ESTRUCTURA ESPERADA DEL CSV:
-
-   0  Marca temporal
-   1  Q1
-   2  Q2 Chilca
-   3  Q3 Chilca
-   4  Q4 Chilca
-   5  Q5 Chilca
-   6  Q2B universidad
-   7  Otra universidad
-   8  Q3B sexo
-   9  Q4B edad
-   10 Q5B carrera
-   11 Q6B ciclo
-   12 Q7 cursos
-   13 Q8 sueño
-   14 Q9 trabajo
-   15 Q10 alimentación
-   16 Q11 estrés
-   17 Q12 estrés
-   18 Q13 estrés
-   19 Q14 estrés
-   20 Q15 estrés
-   21 Q16 estrés
-   22 Q17 estrés
-   23 Q18 síntomas
-   24 Q19 rendimiento
-   25 Q20 comparación
-   26 Q21 afecta estudio
-   27 Q22 afecta notas
-   28 Q23 no entrega
-   29 Q24 nivel estrés
-   30 Q25 percepción
+   - Cada estudiante conserva exclusivamente sus propios valores.
+   - Se trabaja con las posiciones originales de las 31 columnas.
+   - datosGoogle.js SOLO descarga los datos.
+   - app.js realiza su propio filtrado y normalización.
 
    ============================================================ */
 
 
 /* ============================================================
    VARIABLES
-============================================================ */
+   ============================================================ */
 
 let datosOriginales = [];
 let datosValidos = [];
@@ -66,10 +49,14 @@ let encabezadosOriginales = [];
 
 let archivoActual = null;
 
+let fuenteActual = "";
+
+let cargaGoogleEnCurso = false;
+
 
 /* ============================================================
    ELEMENTOS HTML
-============================================================ */
+   ============================================================ */
 
 const inputArchivo =
     document.getElementById("archivoCSV");
@@ -100,41 +87,48 @@ const tablaPreview =
 
 
 /* ============================================================
-   EVENTO: SELECCIONAR ARCHIVO
-============================================================ */
+   EVENTO: SELECCIONAR ARCHIVO CSV
+   ============================================================ */
 
-inputArchivo.addEventListener(
-    "change",
-    function () {
+if (inputArchivo) {
 
-        const archivo =
-            this.files[0];
+    inputArchivo.addEventListener(
+        "change",
+        function () {
 
-        if (!archivo) {
-            return;
+            const archivo =
+                this.files[0];
+
+            if (!archivo) {
+                return;
+            }
+
+            archivoActual =
+                archivo;
+
+            fuenteActual =
+                "CSV";
+
+            if (nombreArchivo) {
+                nombreArchivo.textContent =
+                    "Archivo seleccionado: " +
+                    archivo.name;
+            }
+
+            leerCSV(archivo);
         }
-
-        archivoActual =
-            archivo;
-
-        nombreArchivo.textContent =
-            "Archivo seleccionado: " +
-            archivo.name;
-
-        leerCSV(archivo);
-    }
-);
+    );
+}
 
 
 /* ============================================================
    LEER CSV
-============================================================ */
+   ============================================================ */
 
 function leerCSV(archivo) {
 
     const lector =
         new FileReader();
-
 
     lector.onload =
         function (evento) {
@@ -154,15 +148,18 @@ function leerCSV(archivo) {
                     error
                 );
 
-                mensaje.textContent =
-                    "Error al procesar el archivo: " +
-                    error.message;
+                if (mensaje) {
+                    mensaje.textContent =
+                        "Error al procesar el archivo: " +
+                        error.message;
+                }
 
-                btnExportar.disabled =
-                    true;
+                if (btnExportar) {
+                    btnExportar.disabled =
+                        true;
+                }
             }
         };
-
 
     lector.readAsText(
         archivo,
@@ -173,7 +170,7 @@ function leerCSV(archivo) {
 
 /* ============================================================
    LIMPIAR TEXTO
-============================================================ */
+   ============================================================ */
 
 function limpiarTexto(valor) {
 
@@ -183,7 +180,6 @@ function limpiarTexto(valor) {
     ) {
         return "";
     }
-
 
     return String(valor)
         .replace(/^\uFEFF/, "")
@@ -195,28 +191,24 @@ function limpiarTexto(valor) {
 
 /* ============================================================
    REPARAR CARACTERES MAL CODIFICADOS
-============================================================ */
+   ============================================================ */
 
 function repararTexto(valor) {
 
     let texto =
         limpiarTexto(valor);
 
-
     if (!texto) {
         return "";
     }
-
 
     const pareceMojibake =
         /Ã|Â|â€|â€™|â€œ|â€|â€“|â€”|�/
             .test(texto);
 
-
     if (!pareceMojibake) {
         return texto;
     }
-
 
     try {
 
@@ -228,19 +220,16 @@ function repararTexto(valor) {
                 )
             );
 
-
         const reparado =
             new TextDecoder(
                 "utf-8"
             ).decode(bytes);
-
 
         if (
             reparado &&
             reparado !== texto &&
             !reparado.includes("�")
         ) {
-
             return reparado;
         }
 
@@ -252,20 +241,18 @@ function repararTexto(valor) {
         );
     }
 
-
     return texto;
 }
 
 
 /* ============================================================
    DETECTAR SEPARADOR
-============================================================ */
+   ============================================================ */
 
 function detectarSeparador(texto) {
 
     const primeraLinea =
         texto.split("\n")[0];
-
 
     const comas =
         (
@@ -273,21 +260,17 @@ function detectarSeparador(texto) {
             []
         ).length;
 
-
     const puntoComas =
         (
             primeraLinea.match(/;/g) ||
             []
         ).length;
 
-
     if (
         puntoComas > comas
     ) {
-
         return ";";
     }
-
 
     return ",";
 }
@@ -295,7 +278,7 @@ function detectarSeparador(texto) {
 
 /* ============================================================
    PARSER CSV
-============================================================ */
+   ============================================================ */
 
 function parsearCSV(
     texto,
@@ -310,7 +293,6 @@ function parsearCSV(
 
     let dentroComillas =
         false;
-
 
     for (
         let i = 0;
@@ -327,7 +309,7 @@ function parsearCSV(
 
         /* -----------------------------------------
            COMILLAS
-        ----------------------------------------- */
+           ----------------------------------------- */
 
         if (
             caracter === '"'
@@ -345,7 +327,6 @@ function parsearCSV(
                 continue;
             }
 
-
             dentroComillas =
                 !dentroComillas;
 
@@ -355,7 +336,7 @@ function parsearCSV(
 
         /* -----------------------------------------
            SEPARADOR
-        ----------------------------------------- */
+           ----------------------------------------- */
 
         if (
             caracter === separador &&
@@ -376,7 +357,7 @@ function parsearCSV(
 
         /* -----------------------------------------
            SALTO DE LÍNEA
-        ----------------------------------------- */
+           ----------------------------------------- */
 
         if (
             (
@@ -390,10 +371,8 @@ function parsearCSV(
                 caracter === "\r" &&
                 siguiente === "\n"
             ) {
-
                 i++;
             }
-
 
             fila.push(
                 repararTexto(
@@ -402,7 +381,6 @@ function parsearCSV(
             );
 
             campo = "";
-
 
             if (
                 fila.some(
@@ -416,12 +394,10 @@ function parsearCSV(
                 );
             }
 
-
             fila = [];
 
             continue;
         }
-
 
         campo += caracter;
     }
@@ -429,7 +405,7 @@ function parsearCSV(
 
     /* -----------------------------------------
        ÚLTIMA FILA
-    ----------------------------------------- */
+       ----------------------------------------- */
 
     if (
         campo !== "" ||
@@ -441,7 +417,6 @@ function parsearCSV(
                 campo
             )
         );
-
 
         if (
             fila.some(
@@ -456,14 +431,13 @@ function parsearCSV(
         }
     }
 
-
     return filas;
 }
 
 
 /* ============================================================
    NORMALIZAR CANTIDAD DE COLUMNAS
-============================================================ */
+   ============================================================ */
 
 function normalizarNumeroColumnas(
     fila,
@@ -471,7 +445,6 @@ function normalizarNumeroColumnas(
 ) {
 
     const resultado = [];
-
 
     for (
         let i = 0;
@@ -495,46 +468,59 @@ function normalizarNumeroColumnas(
         }
     }
 
-
     return resultado;
 }
 
 
 /* ============================================================
-   PROCESAR CSV
-============================================================ */
+   PROCESADOR CENTRAL
+   ============================================================
 
-function procesarCSV(texto) {
+   Esta función es utilizada tanto por:
 
-    const separador =
-        detectarSeparador(
-            texto
-        );
+   - CSV
+   - Google Sheets
 
+   IMPORTANTE:
 
-    const filas =
-        parsearCSV(
-            texto,
-            separador
-        );
+   Aquí NO se mezclan respuestas.
 
+   Cada fila recibida se convierte en un registro
+   independiente.
+
+   ============================================================ */
+
+function procesarFilasEncuesta(
+    encabezados,
+    filasDatos,
+    fuente = "Desconocida"
+) {
 
     if (
-        filas.length < 2
+        !Array.isArray(encabezados)
     ) {
 
         throw new Error(
-            "El CSV no contiene suficientes datos."
+            "Los encabezados no tienen un formato válido."
+        );
+    }
+
+    if (
+        !Array.isArray(filasDatos)
+    ) {
+
+        throw new Error(
+            "Las filas de datos no tienen un formato válido."
         );
     }
 
 
     /* -----------------------------------------
        ENCABEZADOS
-    ----------------------------------------- */
+       ----------------------------------------- */
 
     encabezadosOriginales =
-        filas[0].map(
+        encabezados.map(
             encabezado =>
                 repararTexto(
                     encabezado
@@ -543,12 +529,8 @@ function procesarCSV(texto) {
 
 
     /* -----------------------------------------
-       RESPUESTAS
-    ----------------------------------------- */
-
-    const filasDatos =
-        filas.slice(1);
-
+       REINICIAR DATOS
+       ----------------------------------------- */
 
     datosOriginales = [];
 
@@ -556,10 +538,13 @@ function procesarCSV(texto) {
 
     datosExcluidos = [];
 
+    fuenteActual =
+        fuente;
+
 
     /* -----------------------------------------
        PROCESAR CADA FILA
-    ----------------------------------------- */
+       ----------------------------------------- */
 
     filasDatos.forEach(
         function (
@@ -568,28 +553,37 @@ function procesarCSV(texto) {
         ) {
 
             /*
-               La fila 1 de Excel contiene
-               los encabezados.
-
-               Por eso la primera respuesta
-               está en la fila 2.
-            */
+             * La primera fila de la hoja/CSV
+             * corresponde a los encabezados.
+             *
+             * Por eso:
+             *
+             * indice 0 → fila original 2
+             * indice 1 → fila original 3
+             * ...
+             */
 
             const filaExcel =
                 indice + 2;
 
 
+            /*
+             * Cada fila es normalizada
+             * individualmente.
+             */
+
             const filaNormalizada =
                 normalizarNumeroColumnas(
-                    fila,
+                    Array.isArray(fila)
+                        ? fila
+                        : [],
                     encabezadosOriginales.length
                 );
 
 
             /*
-               Cada registro conserva únicamente
-               sus propios valores.
-            */
+             * Registro independiente.
+             */
 
             const registro = {
 
@@ -606,11 +600,9 @@ function procesarCSV(texto) {
             );
 
 
-            /*
-               =====================================
+            /* -----------------------------------------
                REGLA DEFINITIVA
-               =====================================
-            */
+               ----------------------------------------- */
 
             if (
                 filaExcel >= 20
@@ -626,53 +618,369 @@ function procesarCSV(texto) {
                     registro
                 );
             }
-
         }
     );
 
+
+    /* -----------------------------------------
+       ACTUALIZAR INTERFAZ
+       ----------------------------------------- */
 
     actualizarEstadisticas();
 
     mostrarPreview();
 
 
-    mensaje.textContent =
-        "Archivo procesado correctamente. " +
-        datosValidos.length +
-        " respuestas válidas encontradas.";
+    if (mensaje) {
+
+        mensaje.textContent =
+            (
+                fuente === "Google Sheets"
+
+                    ? "Datos obtenidos automáticamente desde Google Sheets. "
+
+                    : "Archivo procesado correctamente. "
+            ) +
+
+            datosValidos.length +
+
+            " respuestas válidas encontradas.";
+    }
 
 
-    btnExportar.disabled =
-        datosValidos.length === 0;
+    if (btnExportar) {
+
+        btnExportar.disabled =
+            datosValidos.length === 0;
+    }
+
+
+    console.log(
+        "=========================================="
+    );
+
+    console.log(
+        "APP.JS - DATOS PROCESADOS"
+    );
+
+    console.log(
+        "Fuente:",
+        fuenteActual
+    );
+
+    console.log(
+        "Total de respuestas:",
+        datosOriginales.length
+    );
+
+    console.log(
+        "Respuestas válidas:",
+        datosValidos.length
+    );
+
+    console.log(
+        "Respuestas excluidas:",
+        datosExcluidos.length
+    );
+
+    console.log(
+        "Columnas:",
+        encabezadosOriginales.length
+    );
+
+    console.log(
+        "=========================================="
+    );
+}
+
+
+/* ============================================================
+   PROCESAR CSV
+   ============================================================ */
+
+function procesarCSV(texto) {
+
+    const separador =
+        detectarSeparador(
+            texto
+        );
+
+    const filas =
+        parsearCSV(
+            texto,
+            separador
+        );
+
+    if (
+        filas.length < 2
+    ) {
+
+        throw new Error(
+            "El CSV no contiene suficientes datos."
+        );
+    }
+
+
+    const encabezados =
+        filas[0];
+
+
+    const filasDatos =
+        filas.slice(1);
+
+
+    procesarFilasEncuesta(
+        encabezados,
+        filasDatos,
+        "CSV"
+    );
+}
+
+
+/* ============================================================
+   CARGAR DATOS DESDE GOOGLE SHEETS
+   ============================================================
+
+   datosGoogle.js debe estar cargado antes que app.js.
+
+   datosGoogle.js NO filtra.
+
+   app.js recibe:
+
+       window.ENCABEZADOS_GOOGLE
+       window.FILAS_GOOGLE
+
+   y realiza su propio procesamiento.
+
+   ============================================================ */
+
+async function cargarDatosDesdeGoogle() {
+
+    if (cargaGoogleEnCurso) {
+        console.log(
+            "⏳ Ya existe una carga de Google en curso."
+        );
+        return;
+    }
+
+    cargaGoogleEnCurso = true;
+
+
+    try {
+
+        console.log(
+            "🌐 APP.JS: solicitando datos de Google Sheets..."
+        );
+
+
+        /*
+         * Si datosGoogle.js todavía no ha descargado
+         * los datos, utilizamos su función.
+         */
+
+        if (
+            typeof obtenerDatosGoogle !==
+            "function"
+        ) {
+
+            throw new Error(
+                "No se encontró obtenerDatosGoogle(). Verifica que datosGoogle.js esté cargado antes de app.js."
+            );
+        }
+
+
+        let datosGoogle;
+
+
+        /*
+         * Si ya existen datos descargados,
+         * los reutilizamos.
+         */
+
+        if (
+            Array.isArray(
+                window.FILAS_GOOGLE
+            ) &&
+            Array.isArray(
+                window.ENCABEZADOS_GOOGLE
+            ) &&
+            window.FILAS_GOOGLE.length > 0
+        ) {
+
+            console.log(
+                "♻️ APP.JS: reutilizando datos de Google ya descargados."
+            );
+
+            datosGoogle = {
+
+                filas:
+                    window.FILAS_GOOGLE,
+
+                encabezados:
+                    window.ENCABEZADOS_GOOGLE
+            };
+
+        } else {
+
+            datosGoogle =
+                await obtenerDatosGoogle();
+        }
+
+
+        /* -----------------------------------------
+           VALIDAR RESPUESTA
+           ----------------------------------------- */
+
+        if (
+            !datosGoogle ||
+            !Array.isArray(
+                datosGoogle.filas
+            ) ||
+            !Array.isArray(
+                datosGoogle.encabezados
+            )
+        ) {
+
+            throw new Error(
+                "Google no devolvió una estructura válida de datos."
+            );
+        }
+
+
+        /* -----------------------------------------
+           GUARDAR DATOS CRUDOS
+           ----------------------------------------- */
+
+        window.FILAS_GOOGLE =
+            datosGoogle.filas;
+
+        window.ENCABEZADOS_GOOGLE =
+            datosGoogle.encabezados;
+
+
+        /*
+         * IMPORTANTE:
+         *
+         * Aquí NO se normaliza.
+         *
+         * app.js recibe directamente
+         * las filas originales.
+         */
+
+        procesarFilasEncuesta(
+
+            datosGoogle.encabezados,
+
+            datosGoogle.filas,
+
+            "Google Sheets"
+        );
+
+
+        /*
+         * Nombre virtual de la fuente.
+         */
+
+        archivoActual = {
+
+            name:
+                "Google_Sheets_Encuesta_Estres_2026_2"
+        };
+
+
+        if (nombreArchivo) {
+
+            nombreArchivo.textContent =
+                "Fuente: Google Sheets | " +
+                datosGoogle.filas.length +
+                " respuestas";
+        }
+
+
+        console.log(
+            "✅ APP.JS: Google Sheets procesado correctamente."
+        );
+
+        console.log(
+            "📊 Filas recibidas:",
+            datosGoogle.filas.length
+        );
+
+        console.log(
+            "📋 Columnas recibidas:",
+            datosGoogle.encabezados.length
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "❌ APP.JS: error cargando Google Sheets:",
+            error
+        );
+
+
+        /*
+         * No deshabilitamos necesariamente
+         * el sistema completo.
+         *
+         * El CSV continúa disponible como
+         * mecanismo de respaldo.
+         */
+
+        if (mensaje) {
+
+            mensaje.textContent =
+                "No se pudieron cargar automáticamente los datos de Google Sheets. Puedes utilizar el CSV como respaldo.";
+        }
+
+
+    } finally {
+
+        cargaGoogleEnCurso =
+            false;
+    }
 }
 
 
 /* ============================================================
    ESTADÍSTICAS
-============================================================ */
+   ============================================================ */
 
 function actualizarEstadisticas() {
 
-    totalRespuestas.textContent =
-        datosOriginales.length;
+    if (totalRespuestas) {
+
+        totalRespuestas.textContent =
+            datosOriginales.length;
+    }
 
 
-    respuestasValidas.textContent =
-        datosValidos.length;
+    if (respuestasValidas) {
+
+        respuestasValidas.textContent =
+            datosValidos.length;
+    }
 
 
-    respuestasExcluidas.textContent =
-        datosExcluidos.length;
+    if (respuestasExcluidas) {
+
+        respuestasExcluidas.textContent =
+            datosExcluidos.length;
+    }
 
 
-    columnasDetectadas.textContent =
-        encabezadosOriginales.length;
+    if (columnasDetectadas) {
+
+        columnasDetectadas.textContent =
+            encabezadosOriginales.length;
+    }
 }
 
 
 /* ============================================================
    OBTENER VALOR POR POSICIÓN
-============================================================ */
+   ============================================================ */
 
 function valorColumna(
     fila,
@@ -688,7 +996,6 @@ function valorColumna(
         return "";
     }
 
-
     return repararTexto(
         fila[posicion]
     );
@@ -697,7 +1004,7 @@ function valorColumna(
 
 /* ============================================================
    NORMALIZAR GRUPO
-============================================================ */
+   ============================================================ */
 
 function normalizarGrupo(
     valor
@@ -738,34 +1045,28 @@ function normalizarGrupo(
 
 /* ============================================================
    CONSTRUIR FILA UNIFICADA
-============================================================ */
+   ============================================================ */
 
 function construirFilaUnificada(
     registro
 ) {
 
     /*
-       ESTA ES LA PARTE CLAVE.
-
-       "fila" pertenece exclusivamente a este
-       registro.
-
-       Nunca se consulta datosValidos[n]
-       ni datosOriginales[n].
-
-       Por tanto no puede existir cruce
-       entre estudiantes.
-    */
+     * La fila pertenece exclusivamente
+     * a este registro.
+     *
+     * Nunca se consulta otra fila.
+     *
+     * No se cruzan estudiantes.
+     */
 
     const fila =
         registro.valores;
 
 
-    /*
-       -----------------------------------------
+    /* -----------------------------------------
        DATOS GENERALES
-       -----------------------------------------
-    */
+       ----------------------------------------- */
 
     const marcaTemporal =
         valorColumna(
@@ -773,13 +1074,11 @@ function construirFilaUnificada(
             0
         );
 
-
     const respuestaGrupo =
         valorColumna(
             fila,
             1
         );
-
 
     const grupo =
         normalizarGrupo(
@@ -798,11 +1097,9 @@ function construirFilaUnificada(
     let ciclo = "";
 
 
-    /*
-       -----------------------------------------
+    /* -----------------------------------------
        UNMSM CHILCA
-       -----------------------------------------
-    */
+       ----------------------------------------- */
 
     if (
         grupo ===
@@ -812,13 +1109,11 @@ function construirFilaUnificada(
         universidad =
             "UNMSM - Sede Chilca";
 
-
         sexo =
             valorColumna(
                 fila,
                 2
             );
-
 
         edad =
             valorColumna(
@@ -826,13 +1121,11 @@ function construirFilaUnificada(
                 3
             );
 
-
         carrera =
             valorColumna(
                 fila,
                 4
             );
-
 
         ciclo =
             valorColumna(
@@ -842,11 +1135,9 @@ function construirFilaUnificada(
     }
 
 
-    /*
-       -----------------------------------------
+    /* -----------------------------------------
        OTRAS UNIVERSIDADES
-       -----------------------------------------
-    */
+       ----------------------------------------- */
 
     else if (
         grupo ===
@@ -860,12 +1151,6 @@ function construirFilaUnificada(
             );
 
 
-        /*
-           Si Google Forms utiliza "Otra",
-           tomamos la especificación de
-           la columna 7.
-        */
-
         const otraUniversidad =
             valorColumna(
                 fila,
@@ -874,11 +1159,10 @@ function construirFilaUnificada(
 
 
         if (
-            (
-                universidad
-                    .toLowerCase()
-                    .trim() === "otra"
-            ) &&
+            universidad
+                .toLowerCase()
+                .trim() === "otra"
+            &&
             otraUniversidad
         ) {
 
@@ -893,20 +1177,17 @@ function construirFilaUnificada(
                 8
             );
 
-
         edad =
             valorColumna(
                 fila,
                 9
             );
 
-
         carrera =
             valorColumna(
                 fila,
                 10
             );
-
 
         ciclo =
             valorColumna(
@@ -916,11 +1197,9 @@ function construirFilaUnificada(
     }
 
 
-    /*
-       -----------------------------------------
+    /* -----------------------------------------
        CARGA ACADÉMICA Y ESTILO DE VIDA
-       -----------------------------------------
-    */
+       ----------------------------------------- */
 
     const cursos =
         valorColumna(
@@ -928,20 +1207,17 @@ function construirFilaUnificada(
             12
         );
 
-
     const horasSueno =
         valorColumna(
             fila,
             13
         );
 
-
     const trabajo =
         valorColumna(
             fila,
             14
         );
-
 
     const alimentacion =
         valorColumna(
@@ -950,11 +1226,9 @@ function construirFilaUnificada(
         );
 
 
-    /*
-       -----------------------------------------
+    /* -----------------------------------------
        ESTRÉS ACADÉMICO
-       -----------------------------------------
-    */
+       ----------------------------------------- */
 
     const estres1 =
         valorColumna(
@@ -962,13 +1236,11 @@ function construirFilaUnificada(
             16
         );
 
-
     const estres2 =
         valorColumna(
             fila,
             17
         );
-
 
     const estres3 =
         valorColumna(
@@ -976,13 +1248,11 @@ function construirFilaUnificada(
             18
         );
 
-
     const estres4 =
         valorColumna(
             fila,
             19
         );
-
 
     const estres5 =
         valorColumna(
@@ -990,13 +1260,11 @@ function construirFilaUnificada(
             20
         );
 
-
     const estres6 =
         valorColumna(
             fila,
             21
         );
-
 
     const estres7 =
         valorColumna(
@@ -1005,11 +1273,9 @@ function construirFilaUnificada(
         );
 
 
-    /*
-       -----------------------------------------
+    /* -----------------------------------------
        SÍNTOMAS
-       -----------------------------------------
-    */
+       ----------------------------------------- */
 
     const sintomas =
         valorColumna(
@@ -1018,11 +1284,9 @@ function construirFilaUnificada(
         );
 
 
-    /*
-       -----------------------------------------
+    /* -----------------------------------------
        RENDIMIENTO
-       -----------------------------------------
-    */
+       ----------------------------------------- */
 
     const rendimiento =
         valorColumna(
@@ -1030,13 +1294,11 @@ function construirFilaUnificada(
             24
         );
 
-
     const comparacion =
         valorColumna(
             fila,
             25
         );
-
 
     const afectaEstudio =
         valorColumna(
@@ -1044,13 +1306,11 @@ function construirFilaUnificada(
             26
         );
 
-
     const afectaNotas =
         valorColumna(
             fila,
             27
         );
-
 
     const noEntrega =
         valorColumna(
@@ -1059,18 +1319,15 @@ function construirFilaUnificada(
         );
 
 
-    /*
-       -----------------------------------------
+    /* -----------------------------------------
        PERCEPCIÓN
-       -----------------------------------------
-    */
+       ----------------------------------------- */
 
     const nivelEstres =
         valorColumna(
             fila,
             29
         );
-
 
     const percepcion =
         valorColumna(
@@ -1079,11 +1336,9 @@ function construirFilaUnificada(
         );
 
 
-    /*
-       -----------------------------------------
+    /* -----------------------------------------
        OBJETO FINAL
-       -----------------------------------------
-    */
+       ----------------------------------------- */
 
     return {
 
@@ -1173,7 +1428,7 @@ function construirFilaUnificada(
 
 /* ============================================================
    OBTENER DATOS LIMPIOS
-============================================================ */
+   ============================================================ */
 
 function obtenerDatosLimpios() {
 
@@ -1192,15 +1447,19 @@ function obtenerDatosLimpios() {
 
 /* ============================================================
    PREVISUALIZACIÓN
-============================================================ */
+   ============================================================ */
 
 function mostrarPreview() {
+
+    if (!tablaPreview) {
+        return;
+    }
+
 
     const thead =
         tablaPreview.querySelector(
             "thead"
         );
-
 
     const tbody =
         tablaPreview.querySelector(
@@ -1208,15 +1467,15 @@ function mostrarPreview() {
         );
 
 
+    if (!thead || !tbody) {
+        return;
+    }
+
+
     thead.innerHTML = "";
 
     tbody.innerHTML = "";
 
-
-    /*
-       Encabezados que mostraremos
-       en la vista previa.
-    */
 
     const encabezadosPreview = [
 
@@ -1241,13 +1500,12 @@ function mostrarPreview() {
         "Horas de sueño",
 
         "Trabajo actualmente"
-
     ];
 
 
-    /*
-       Crear encabezados
-    */
+    /* -----------------------------------------
+       ENCABEZADOS
+       ----------------------------------------- */
 
     const filaEncabezado =
         document.createElement(
@@ -1265,10 +1523,8 @@ function mostrarPreview() {
                     "th"
                 );
 
-
             th.textContent =
                 encabezado;
-
 
             filaEncabezado.appendChild(
                 th
@@ -1282,23 +1538,9 @@ function mostrarPreview() {
     );
 
 
-    /*
-       ========================================================
-       CORRECCIÓN DEL ERROR
-       ========================================================
-
-       Antes se hacía:
-
-           datos.slice(...)
-
-       Pero "datos" era un objeto.
-
-       Ahora obtenemos directamente el objeto
-       unificado y usamos los encabezados para
-       recuperar cada valor.
-
-       ========================================================
-    */
+    /* -----------------------------------------
+       DATOS
+       ----------------------------------------- */
 
     datosValidos.forEach(
         function (
@@ -1327,10 +1569,8 @@ function mostrarPreview() {
                             "td"
                         );
 
-
                     td.textContent =
                         datos[encabezado] || "";
-
 
                     tr.appendChild(
                         td
@@ -1349,12 +1589,15 @@ function mostrarPreview() {
 
 /* ============================================================
    EXPORTAR EXCEL
-============================================================ */
+   ============================================================ */
 
-btnExportar.addEventListener(
-    "click",
-    exportarExcel
-);
+if (btnExportar) {
+
+    btnExportar.addEventListener(
+        "click",
+        exportarExcel
+    );
+}
 
 
 function exportarExcel() {
@@ -1371,9 +1614,21 @@ function exportarExcel() {
     }
 
 
-    /*
-       Crear libro
-    */
+    if (
+        typeof XLSX === "undefined"
+    ) {
+
+        alert(
+            "No se encontró la biblioteca XLSX."
+        );
+
+        return;
+    }
+
+
+    /* -----------------------------------------
+       CREAR LIBRO
+       ----------------------------------------- */
 
     const libro =
         XLSX.utils.book_new();
@@ -1526,13 +1781,23 @@ function exportarExcel() {
         datosValidos.length > 0
             ? datosValidos[
                 datosValidos.length - 1
-              ].filaOriginal
+            ].filaOriginal
             : "";
 
 
     const diagnostico = [
 
         {
+
+            "Indicador":
+                "Fuente de datos",
+
+            "Resultado":
+                fuenteActual
+        },
+
+        {
+
             "Indicador":
                 "Total de respuestas leídas",
 
@@ -1541,6 +1806,7 @@ function exportarExcel() {
         },
 
         {
+
             "Indicador":
                 "Respuestas válidas",
 
@@ -1549,6 +1815,7 @@ function exportarExcel() {
         },
 
         {
+
             "Indicador":
                 "Respuestas excluidas",
 
@@ -1557,6 +1824,7 @@ function exportarExcel() {
         },
 
         {
+
             "Indicador":
                 "Primera fila válida",
 
@@ -1565,6 +1833,7 @@ function exportarExcel() {
         },
 
         {
+
             "Indicador":
                 "Última fila válida",
 
@@ -1573,6 +1842,7 @@ function exportarExcel() {
         },
 
         {
+
             "Indicador":
                 "Regla de selección",
 
@@ -1581,6 +1851,7 @@ function exportarExcel() {
         },
 
         {
+
             "Indicador":
                 "Cruce entre respuestas",
 
@@ -1589,13 +1860,22 @@ function exportarExcel() {
         },
 
         {
+
+            "Indicador":
+                "Normalización desde datosGoogle.js",
+
+            "Resultado":
+                "NO"
+        },
+
+        {
+
             "Indicador":
                 "Columnas originales",
 
             "Resultado":
                 encabezadosOriginales.length
         }
-
     ];
 
 
@@ -1620,16 +1900,13 @@ function exportarExcel() {
         hojaLimpia
     );
 
-
     ajustarAnchoColumnas(
         hojaOriginal
     );
 
-
     ajustarAnchoColumnas(
         hojaRevision
     );
-
 
     ajustarAnchoColumnas(
         hojaDiagnostico
@@ -1646,16 +1923,21 @@ function exportarExcel() {
     );
 
 
-    mensaje.textContent =
-        "Excel generado correctamente. " +
-        datosValidos.length +
-        " respuestas válidas exportadas.";
+    if (mensaje) {
+
+        mensaje.textContent =
+            "Excel generado correctamente. " +
+            datosValidos.length +
+            " respuestas válidas exportadas desde " +
+            fuenteActual +
+            ".";
+    }
 }
 
 
 /* ============================================================
    AJUSTAR ANCHO DE COLUMNAS
-============================================================ */
+   ============================================================ */
 
 function ajustarAnchoColumnas(
     hoja
@@ -1736,6 +2018,7 @@ function ajustarAnchoColumnas(
 
 
         anchos.push({
+
             wch:
                 maximo + 2
         });
@@ -1744,4 +2027,56 @@ function ajustarAnchoColumnas(
 
     hoja["!cols"] =
         anchos;
+}
+
+
+/* ============================================================
+   INICIALIZACIÓN AUTOMÁTICA
+   ============================================================
+
+   IMPORTANTE:
+
+   datosGoogle.js debe aparecer ANTES de app.js:
+
+       <script src="datosGoogle.js"></script>
+       <script src="app.js"></script>
+
+   XLSX también debe cargarse antes de app.js.
+
+   ============================================================ */
+
+function iniciarAppEncuesta() {
+
+    console.log(
+        "🚀 APP.JS iniciado."
+    );
+
+    console.log(
+        "🌐 Intentando cargar datos automáticamente desde Google Sheets..."
+    );
+
+
+    cargarDatosDesdeGoogle();
+}
+
+
+/* ============================================================
+   ESPERAR A QUE EL DOM ESTÉ LISTO
+   ============================================================ */
+
+if (
+    document.readyState === "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        iniciarAppEncuesta,
+        {
+            once: true
+        }
+    );
+
+} else {
+
+    iniciarAppEncuesta();
 }
