@@ -1,0 +1,1695 @@
+/* ============================================================
+   LIMPIADOR DE ENCUESTA UNMSM
+   ESTILOS PRINCIPALES
+   ============================================================ */
+
+
+/* ============================================================
+   VARIABLES
+============================================================ */
+
+:root {
+
+    --azul-principal: #2563eb;
+    --azul-oscuro: #1e40af;
+    --azul-claro: #eff6ff;
+
+    --verde: #16a34a;
+    --verde-oscuro: #15803d;
+    --verde-claro: #f0fdf4;
+
+    --rojo: #dc2626;
+    --rojo-claro: #fef2f2;
+
+    --amarillo: #d97706;
+    --amarillo-claro: #fffbeb;
+
+    --gris-900: #111827;
+    --gris-800: #1f2937;
+    --gris-700: #374151;
+    --gris-600: #4b5563;
+    --gris-500: #6b7280;
+    --gris-400: #9ca3af;
+    --gris-300: #d1d5db;
+    --gris-200: #e5e7eb;
+    --gris-100: #f3f4f6;
+    --gris-50: #f9fafb;
+
+    --blanco: #ffffff;
+
+    --radio-grande: 18px;
+    --radio-mediano: 12px;
+    --radio-pequeno: 8px;
+
+    --sombra:
+        0 10px 30px rgba(15, 23, 42, 0.07);
+
+    --sombra-hover:
+        0 16px 40px rgba(15, 23, 42, 0.12);
+
+    --transicion:
+        all 0.25s ease;
+}
+
+
+/* ============================================================
+   RESET
+============================================================ */
+
+* {
+    box-sizing: border-box;
+}
+
+
+html {
+    scroll-behavior: smooth;
+}
+
+
+body {
+
+    margin: 0;
+
+    padding: 0;
+
+    min-height: 100vh;
+
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    color: var(--gris-800);
+
+    background:
+        linear-gradient(
+            180deg,
+            #eef4ff 0px,
+            #f6f8fc 300px,
+            #f3f4f6 100%
+        );
+
+    line-height: 1.5;
+}
+
+
+/* ============================================================
+   CONTENEDOR PRINCIPAL
+============================================================ */
+
+.contenedor {
+
+    width: min(
+        94%,
+        1250px
+    );
+
+    margin: 0 auto;
+
+    padding:
+        45px 0 50px;
+}
+
+
+/* ============================================================
+   ENCABEZADO
+============================================================ */
+
+.encabezado {
+
+    position: relative;
+
+    text-align: center;
+
+    margin-bottom: 35px;
+
+    padding:
+        42px 30px;
+
+    border-radius:
+        var(--radio-grande);
+
+    background:
+        linear-gradient(
+            135deg,
+            #1e3a8a,
+            #2563eb
+        );
+
+    color: white;
+
+    box-shadow:
+        0 18px 45px rgba(
+            37,
+            99,
+            235,
+            0.22
+        );
+
+    overflow: hidden;
+}
+
+
+/*
+   Decoración del encabezado
+*/
+
+.encabezado::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 260px;
+
+    height: 260px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.08
+        );
+
+    top: -150px;
+
+    right: -70px;
+}
+
+
+.encabezado::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 180px;
+
+    height: 180px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.06
+        );
+
+    bottom: -110px;
+
+    left: -50px;
+}
+
+
+.encabezado h1 {
+
+    position: relative;
+
+    z-index: 1;
+
+    margin:
+        0 0 10px;
+
+    font-size:
+        clamp(
+            26px,
+            4vw,
+            38px
+        );
+
+    font-weight:
+        800;
+
+    letter-spacing:
+        -0.6px;
+}
+
+
+.encabezado p {
+
+    position: relative;
+
+    z-index: 1;
+
+    margin: 0 auto;
+
+    max-width: 750px;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            0.86
+        );
+
+    font-size:
+        clamp(
+            14px,
+            2vw,
+            16px
+        );
+}
+
+
+/* ============================================================
+   TARJETAS
+============================================================ */
+
+.tarjeta {
+
+    background:
+        var(--blanco);
+
+    border:
+        1px solid
+        rgba(
+            229,
+            231,
+            235,
+            0.9
+        );
+
+    border-radius:
+        var(--radio-grande);
+
+    padding:
+        28px;
+
+    margin-bottom:
+        24px;
+
+    box-shadow:
+        var(--sombra);
+
+    transition:
+        var(--transicion);
+}
+
+
+.tarjeta:hover {
+
+    box-shadow:
+        var(--sombra-hover);
+
+    transform:
+        translateY(-2px);
+}
+
+
+.tarjeta h2 {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin:
+        0 0 8px;
+
+    color:
+        var(--gris-900);
+
+    font-size:
+        21px;
+
+    font-weight:
+        750;
+
+    letter-spacing:
+        -0.3px;
+}
+
+
+.descripcion {
+
+    margin:
+        0 0 22px;
+
+    color:
+        var(--gris-500);
+
+    font-size:
+        14px;
+}
+
+
+/* ============================================================
+   CARGA DE ARCHIVO
+============================================================ */
+
+.boton-archivo {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height:
+        48px;
+
+    padding:
+        0 24px;
+
+    border-radius:
+        10px;
+
+    background:
+        var(--azul-principal);
+
+    color:
+        white;
+
+    cursor:
+        pointer;
+
+    font-size:
+        15px;
+
+    font-weight:
+        700;
+
+    transition:
+        var(--transicion);
+
+    box-shadow:
+        0 6px 18px
+        rgba(
+            37,
+            99,
+            235,
+            0.22
+        );
+}
+
+
+.boton-archivo:hover {
+
+    background:
+        var(--azul-oscuro);
+
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 10px 25px
+        rgba(
+            37,
+            99,
+            235,
+            0.28
+        );
+}
+
+
+.boton-archivo:active {
+
+    transform:
+        translateY(0);
+}
+
+
+.nombre-archivo {
+
+    display: flex;
+
+    align-items: center;
+
+    min-height:
+        42px;
+
+    margin:
+        16px 0 0;
+
+    padding:
+        10px 14px;
+
+    border-radius:
+        var(--radio-pequeno);
+
+    background:
+        var(--gris-50);
+
+    border:
+        1px dashed
+        var(--gris-300);
+
+    color:
+        var(--gris-600);
+
+    font-size:
+        14px;
+
+    word-break:
+        break-word;
+}
+
+
+/* ============================================================
+   REGLA DE SELECCIÓN
+============================================================ */
+
+.regla {
+
+    position: relative;
+
+    padding:
+        24px;
+
+    border:
+        1px solid
+        #bfdbfe;
+
+    border-left:
+        5px solid
+        var(--azul-principal);
+
+    border-radius:
+        var(--radio-mediano);
+
+    background:
+        linear-gradient(
+            135deg,
+            #eff6ff,
+            #f8fbff
+        );
+
+    overflow: hidden;
+}
+
+
+.regla::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 130px;
+
+    height: 130px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(
+            37,
+            99,
+            235,
+            0.05
+        );
+
+    right:
+        -50px;
+
+    bottom:
+        -70px;
+}
+
+
+.regla strong {
+
+    position: relative;
+
+    z-index: 1;
+
+    display: block;
+
+    margin-bottom:
+        8px;
+
+    color:
+        #1e3a8a;
+
+    font-size:
+        16px;
+}
+
+
+.regla p {
+
+    position: relative;
+
+    z-index: 1;
+
+    margin:
+        0;
+
+    color:
+        var(--gris-600);
+
+    line-height:
+        1.7;
+
+    font-size:
+        14px;
+}
+
+
+/* ============================================================
+   DATOS DE LA REGLA
+============================================================ */
+
+.regla-datos {
+
+    position: relative;
+
+    z-index: 1;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(
+                150px,
+                1fr
+            )
+        );
+
+    gap:
+        14px;
+
+    margin-top:
+        22px;
+}
+
+
+.regla-datos div {
+
+    padding:
+        16px;
+
+    border:
+        1px solid
+        rgba(
+            229,
+            231,
+            235,
+            0.9
+        );
+
+    border-radius:
+        10px;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.9
+        );
+
+    box-shadow:
+        0 4px 12px
+        rgba(
+            15,
+            23,
+            42,
+            0.04
+        );
+
+    transition:
+        var(--transicion);
+}
+
+
+.regla-datos div:hover {
+
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 8px 18px
+        rgba(
+            15,
+            23,
+            42,
+            0.07
+        );
+}
+
+
+.regla-datos span {
+
+    display: block;
+
+    margin-bottom:
+        4px;
+
+    color:
+        var(--gris-500);
+
+    font-size:
+        12px;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        0.5px;
+
+    font-weight:
+        600;
+}
+
+
+.regla-datos strong {
+
+    margin: 0;
+
+    color:
+        var(--gris-800);
+
+    font-size:
+        16px;
+}
+
+
+/* ============================================================
+   ESTADÍSTICAS
+============================================================ */
+
+.estadisticas {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            4,
+            minmax(
+                0,
+                1fr
+            )
+        );
+
+    gap:
+        16px;
+}
+
+
+.estadistica {
+
+    position: relative;
+
+    padding:
+        22px;
+
+    border:
+        1px solid
+        var(--gris-200);
+
+    border-radius:
+        14px;
+
+    background:
+        var(--gris-50);
+
+    text-align:
+        center;
+
+    overflow:
+        hidden;
+
+    transition:
+        var(--transicion);
+}
+
+
+.estadistica::before {
+
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 4px;
+
+    background:
+        var(--azul-principal);
+}
+
+
+.estadistica:hover {
+
+    transform:
+        translateY(-4px);
+
+    box-shadow:
+        0 10px 25px
+        rgba(
+            15,
+            23,
+            42,
+            0.08
+        );
+}
+
+
+.estadistica .numero {
+
+    display: block;
+
+    margin-bottom:
+        4px;
+
+    color:
+        var(--gris-900);
+
+    font-size:
+        clamp(
+            28px,
+            4vw,
+            38px
+        );
+
+    font-weight:
+        800;
+
+    line-height:
+        1.1;
+}
+
+
+.estadistica .texto {
+
+    display: block;
+
+    color:
+        var(--gris-500);
+
+    font-size:
+        13px;
+
+    font-weight:
+        600;
+}
+
+
+/* RESPUESTAS VÁLIDAS */
+
+.estadistica .valido {
+
+    color:
+        var(--verde);
+}
+
+
+/* RESPUESTAS EXCLUIDAS */
+
+.estadistica .excluido {
+
+    color:
+        var(--rojo);
+}
+
+
+/* ============================================================
+   MENSAJE
+============================================================ */
+
+.mensaje {
+
+    display: flex;
+
+    align-items: center;
+
+    min-height:
+        50px;
+
+    padding:
+        13px 16px;
+
+    margin-bottom:
+        20px;
+
+    border:
+        1px solid
+        var(--gris-200);
+
+    border-radius:
+        10px;
+
+    background:
+        var(--gris-50);
+
+    color:
+        var(--gris-600);
+
+    font-size:
+        14px;
+
+    transition:
+        var(--transicion);
+}
+
+
+/* ============================================================
+   TABLA
+============================================================ */
+
+.tabla-contenedor {
+
+    width: 100%;
+
+    overflow-x:
+        auto;
+
+    border:
+        1px solid
+        var(--gris-200);
+
+    border-radius:
+        12px;
+
+    background:
+        white;
+
+    box-shadow:
+        inset
+        0 0 0 1px
+        rgba(
+            255,
+            255,
+            255,
+            0.5
+        );
+
+    scrollbar-width:
+        thin;
+
+    scrollbar-color:
+        var(--gris-300)
+        var(--gris-100);
+}
+
+
+/*
+   Scrollbar para Chrome/Edge
+*/
+
+.tabla-contenedor::-webkit-scrollbar {
+
+    height:
+        9px;
+}
+
+
+.tabla-contenedor::-webkit-scrollbar-track {
+
+    background:
+        var(--gris-100);
+}
+
+
+.tabla-contenedor::-webkit-scrollbar-thumb {
+
+    background:
+        var(--gris-300);
+
+    border-radius:
+        20px;
+}
+
+
+table {
+
+    width:
+        100%;
+
+    min-width:
+        1000px;
+
+    border-collapse:
+        separate;
+
+    border-spacing:
+        0;
+}
+
+
+/* ============================================================
+   CABECERA DE TABLA
+============================================================ */
+
+thead {
+
+    background:
+        #f8fafc;
+}
+
+
+th {
+
+    position:
+        sticky;
+
+    top:
+        0;
+
+    z-index:
+        2;
+
+    padding:
+        14px 15px;
+
+    border-bottom:
+        2px solid
+        var(--gris-200);
+
+    background:
+        #f8fafc;
+
+    color:
+        var(--gris-700);
+
+    font-size:
+        12px;
+
+    font-weight:
+        750;
+
+    text-align:
+        left;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        0.35px;
+
+    white-space:
+        nowrap;
+}
+
+
+/* ============================================================
+   CELDAS
+============================================================ */
+
+td {
+
+    padding:
+        13px 15px;
+
+    border-bottom:
+        1px solid
+        var(--gris-200);
+
+    color:
+        var(--gris-600);
+
+    font-size:
+        13px;
+
+    text-align:
+        left;
+
+    white-space:
+        nowrap;
+}
+
+
+tbody tr {
+
+    transition:
+        background
+        0.2s ease;
+}
+
+
+tbody tr:hover {
+
+    background:
+        #f8fafc;
+}
+
+
+tbody tr:last-child td {
+
+    border-bottom:
+        none;
+}
+
+
+/* ============================================================
+   BOTÓN PRINCIPAL
+============================================================ */
+
+.boton-principal {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width:
+        100%;
+
+    min-height:
+        52px;
+
+    padding:
+        0 22px;
+
+    border:
+        none;
+
+    border-radius:
+        11px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--verde),
+            var(--verde-oscuro)
+        );
+
+    color:
+        white;
+
+    font-size:
+        15px;
+
+    font-weight:
+        750;
+
+    letter-spacing:
+        0.1px;
+
+    cursor:
+        pointer;
+
+    box-shadow:
+        0 8px 20px
+        rgba(
+            22,
+            163,
+            74,
+            0.20
+        );
+
+    transition:
+        var(--transicion);
+}
+
+
+.boton-principal:hover:not(:disabled) {
+
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 12px 28px
+        rgba(
+            22,
+            163,
+            74,
+            0.28
+        );
+}
+
+
+.boton-principal:active:not(:disabled) {
+
+    transform:
+        translateY(0);
+}
+
+
+.boton-principal:disabled {
+
+    background:
+        linear-gradient(
+            135deg,
+            #9ca3af,
+            #6b7280
+        );
+
+    box-shadow:
+        none;
+
+    cursor:
+        not-allowed;
+
+    opacity:
+        0.7;
+}
+
+
+/* ============================================================
+   FOOTER
+============================================================ */
+
+footer {
+
+    padding:
+        10px 20px;
+
+    margin-top:
+        30px;
+
+    text-align:
+        center;
+
+    color:
+        var(--gris-500);
+
+    font-size:
+        13px;
+}
+
+
+footer p {
+
+    margin:
+        5px 0;
+}
+
+
+/* ============================================================
+   ANIMACIÓN DE ENTRADA
+============================================================ */
+
+.tarjeta {
+
+    animation:
+        aparecer
+        0.45s
+        ease
+        both;
+}
+
+
+@keyframes aparecer {
+
+    from {
+
+        opacity:
+            0;
+
+        transform:
+            translateY(12px);
+    }
+
+    to {
+
+        opacity:
+            1;
+
+        transform:
+            translateY(0);
+    }
+}
+
+
+/* ============================================================
+   FOCUS / ACCESIBILIDAD
+============================================================ */
+
+button:focus-visible,
+label:focus-visible,
+input:focus-visible {
+
+    outline:
+        3px solid
+        rgba(
+            37,
+            99,
+            235,
+            0.3
+        );
+
+    outline-offset:
+        3px;
+}
+
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media (
+    max-width: 900px
+) {
+
+    .contenedor {
+
+        width:
+            94%;
+
+        padding-top:
+            30px;
+    }
+
+
+    .encabezado {
+
+        padding:
+            35px 24px;
+    }
+
+
+    .estadisticas {
+
+        grid-template-columns:
+            repeat(
+                2,
+                1fr
+            );
+    }
+
+
+    .regla-datos {
+
+        grid-template-columns:
+            repeat(
+                3,
+                1fr
+            );
+    }
+
+}
+
+
+/* ============================================================
+   MÓVIL
+============================================================ */
+
+@media (
+    max-width: 600px
+) {
+
+    body {
+
+        background:
+            #f3f4f6;
+    }
+
+
+    .contenedor {
+
+        width:
+            100%;
+
+        padding:
+            15px 12px 30px;
+    }
+
+
+    /* -----------------------------------------
+       ENCABEZADO
+    ----------------------------------------- */
+
+    .encabezado {
+
+        margin-bottom:
+            18px;
+
+        padding:
+            30px 18px;
+
+        border-radius:
+            15px;
+    }
+
+
+    .encabezado h1 {
+
+        font-size:
+            25px;
+
+        line-height:
+            1.2;
+    }
+
+
+    .encabezado p {
+
+        font-size:
+            14px;
+
+        line-height:
+            1.6;
+    }
+
+
+    /* -----------------------------------------
+       TARJETAS
+    ----------------------------------------- */
+
+    .tarjeta {
+
+        padding:
+            20px 16px;
+
+        margin-bottom:
+            16px;
+
+        border-radius:
+            14px;
+    }
+
+
+    .tarjeta:hover {
+
+        transform:
+            none;
+    }
+
+
+    .tarjeta h2 {
+
+        font-size:
+            18px;
+    }
+
+
+    .descripcion {
+
+        font-size:
+            13px;
+
+        line-height:
+            1.6;
+    }
+
+
+    /* -----------------------------------------
+       BOTÓN ARCHIVO
+    ----------------------------------------- */
+
+    .boton-archivo {
+
+        width:
+            100%;
+
+        min-height:
+            50px;
+
+        text-align:
+            center;
+    }
+
+
+    .nombre-archivo {
+
+        font-size:
+            13px;
+
+        line-height:
+            1.5;
+    }
+
+
+    /* -----------------------------------------
+       REGLA
+    ----------------------------------------- */
+
+    .regla {
+
+        padding:
+            18px;
+
+        border-left-width:
+            4px;
+    }
+
+
+    .regla strong {
+
+        font-size:
+            14px;
+
+        line-height:
+            1.5;
+    }
+
+
+    .regla p {
+
+        font-size:
+            13px;
+
+        line-height:
+            1.6;
+    }
+
+
+    .regla-datos {
+
+        grid-template-columns:
+            1fr;
+
+        gap:
+            10px;
+
+        margin-top:
+            18px;
+    }
+
+
+    .regla-datos div {
+
+        min-width:
+            0;
+
+        padding:
+            14px;
+    }
+
+
+    /* -----------------------------------------
+       ESTADÍSTICAS
+    ----------------------------------------- */
+
+    .estadisticas {
+
+        grid-template-columns:
+            repeat(
+                2,
+                1fr
+            );
+
+        gap:
+            10px;
+    }
+
+
+    .estadistica {
+
+        padding:
+            17px 10px;
+
+        border-radius:
+            11px;
+    }
+
+
+    .estadistica .numero {
+
+        font-size:
+            27px;
+    }
+
+
+    .estadistica .texto {
+
+        font-size:
+            11px;
+
+        line-height:
+            1.35;
+    }
+
+
+    /* -----------------------------------------
+       MENSAJE
+    ----------------------------------------- */
+
+    .mensaje {
+
+        align-items:
+            flex-start;
+
+        font-size:
+            13px;
+
+        line-height:
+            1.5;
+    }
+
+
+    /* -----------------------------------------
+       TABLA
+    ----------------------------------------- */
+
+    .tabla-contenedor {
+
+        margin:
+            0 -2px;
+
+        border-radius:
+            9px;
+    }
+
+
+    table {
+
+        min-width:
+            950px;
+    }
+
+
+    th {
+
+        padding:
+            12px;
+
+        font-size:
+            11px;
+    }
+
+
+    td {
+
+        padding:
+            11px 12px;
+
+        font-size:
+            12px;
+    }
+
+
+    /* -----------------------------------------
+       BOTÓN EXPORTAR
+    ----------------------------------------- */
+
+    .boton-principal {
+
+        min-height:
+            50px;
+
+        font-size:
+            14px;
+    }
+
+
+    /* -----------------------------------------
+       FOOTER
+    ----------------------------------------- */
+
+    footer {
+
+        font-size:
+            11px;
+
+        line-height:
+            1.5;
+    }
+
+}
+
+
+/* ============================================================
+   MÓVILES MUY PEQUEÑOS
+============================================================ */
+
+@media (
+    max-width: 380px
+) {
+
+    .contenedor {
+
+        padding:
+            10px 8px 25px;
+    }
+
+
+    .encabezado {
+
+        padding:
+            26px 15px;
+    }
+
+
+    .encabezado h1 {
+
+        font-size:
+            22px;
+    }
+
+
+    .tarjeta {
+
+        padding:
+            17px 13px;
+    }
+
+
+    .estadisticas {
+
+        gap:
+            8px;
+    }
+
+
+    .estadistica {
+
+        padding:
+            15px 7px;
+    }
+
+
+    .estadistica .numero {
+
+        font-size:
+            24px;
+    }
+
+}
+
+
+/* ============================================================
+   REDUCIR MOVIMIENTO PARA USUARIOS QUE LO PREFIEREN
+============================================================ */
+
+@media (
+    prefers-reduced-motion: reduce
+) {
+
+    *,
+    *::before,
+    *::after {
+
+        animation-duration:
+            0.01ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        transition-duration:
+            0.01ms !important;
+
+        scroll-behavior:
+            auto !important;
+    }
+
+}

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Limpiador de Encuesta UNMSM</title>
+
+    <link rel="stylesheet" href="estilos.css">
+
+    <!-- ========================================================= -->
+    <!-- LIBRERÍA XLSX -->
+    <!-- Se carga una sola vez porque la utilizan ambos filtros -->
+    <!-- ========================================================= -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+
+    <div class="contenedor">
+
+        <!-- ===================================================== -->
+        <!-- ENCABEZADO PRINCIPAL -->
+        <!-- ===================================================== -->
+
+        <header class="encabezado">
+
+            <h1>Limpiador de Encuesta UNMSM</h1>
+
+            <p>
+                Herramienta para limpiar, validar y organizar las respuestas
+                exportadas desde Google Forms.
+            </p>
+
+        </header>
+
+
+        <!-- ===================================================== -->
+        <!-- 1. CARGA DEL ARCHIVO -->
+        <!-- ===================================================== -->
+
+        <section class="tarjeta">
+
+            <h2>1. Cargar respuestas</h2>
+
+            <p class="descripcion">
+                Selecciona el archivo CSV original descargado desde Google Forms.
+            </p>
+
+            <label
+                for="archivoCSV"
+                class="boton-archivo"
+            >
+                Seleccionar archivo CSV
+            </label>
+
+            <input
+                type="file"
+                id="archivoCSV"
+                accept=".csv,text/csv"
+                hidden
+            >
+
+            <p
+                id="nombreArchivo"
+                class="nombre-archivo"
+            >
+                Ningún archivo seleccionado.
+            </p>
+
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- 2. REGLA DEL LIMPIADOR GENERAL -->
+        <!-- ===================================================== -->
+
+        <section class="tarjeta">
+
+            <h2>2. Regla de selección</h2>
+
+            <div class="regla">
+
+                <strong>
+                    Se conservarán únicamente las respuestas desde la fila 20.
+                </strong>
+
+                <p>
+                    Las filas 1 a 19 se consideran respuestas anteriores,
+                    pruebas o respuestas afectadas por el problema de navegación
+                    del formulario.
+                </p>
+
+                <div class="regla-datos">
+
+                    <div>
+                        <span>Desde fila</span>
+                        <strong>20</strong>
+                    </div>
+
+                    <div>
+                        <span>Filas anteriores</span>
+                        <strong>Excluir</strong>
+                    </div>
+
+                    <div>
+                        <span>Cruce entre filas</span>
+                        <strong>NO</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- 3. DIAGNÓSTICO DEL LIMPIADOR GENERAL -->
+        <!-- ===================================================== -->
+
+        <section class="tarjeta">
+
+            <h2>3. Diagnóstico</h2>
+
+            <div class="estadisticas">
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero"
+                        id="totalRespuestas"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        Respuestas leídas
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero valido"
+                        id="respuestasValidas"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        Respuestas válidas
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero excluido"
+                        id="respuestasExcluidas"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        Respuestas excluidas
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero"
+                        id="columnasDetectadas"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        Columnas detectadas
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- 4. VISTA PREVIA DEL LIMPIADOR GENERAL -->
+        <!-- ===================================================== -->
+
+        <section class="tarjeta">
+
+            <h2>4. Vista previa</h2>
+
+            <div
+                id="mensaje"
+                class="mensaje"
+            >
+                Carga un archivo CSV para comenzar.
+            </div>
+
+            <div class="tabla-contenedor">
+
+                <table id="tablaPreview">
+
+                    <thead></thead>
+
+                    <tbody></tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- 5. EXPORTACIÓN DEL LIMPIADOR GENERAL -->
+        <!-- ===================================================== -->
+
+        <section class="tarjeta">
+
+            <h2>5. Exportar resultados</h2>
+
+            <p class="descripcion">
+                El archivo Excel tendrá varias hojas para conservar tanto
+                las respuestas válidas como las respuestas descartadas.
+            </p>
+
+            <button
+                id="btnExportar"
+                class="boton-principal"
+                disabled
+            >
+                Generar Excel corregido
+            </button>
+
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- 6. ENCUESTA ESTRÉS ACADÉMICO 2026-2 -->
+        <!-- SOLO ESTUDIANTES DE CHILCA -->
+        <!-- ===================================================== -->
+
+        <section class="tarjeta encuesta10-seccion">
+
+            <h2>
+                6. Encuesta: Estrés académico 2026-2 — Sede Chilca
+            </h2>
+
+            <p class="descripcion">
+                Filtro independiente para extraer únicamente las 10 preguntas
+                de la encuesta aplicada a estudiantes de la sede Chilca de la UNMSM.
+            </p>
+
+
+            <!-- ------------------------------------------------- -->
+            <!-- REGLA DEL FILTRO -->
+            <!-- ------------------------------------------------- -->
+
+            <div class="regla">
+
+                <strong>
+                    Se conservarán únicamente estudiantes de la sede Chilca.
+                </strong>
+
+                <p>
+                    El sistema identificará las respuestas que indiquen
+                    pertenencia a la sede Chilca y descartará las respuestas
+                    correspondientes a otros grupos.
+                </p>
+
+                <p>
+                    Además, las 10 preguntas seleccionadas deberán estar
+                    completas para que la respuesta sea incluida.
+                </p>
+
+
+                <label
+                    for="archivoEncuesta10"
+                    class="boton-archivo"
+                >
+                    Seleccionar CSV de la encuesta
+                </label>
+
+                <input
+                    type="file"
+                    id="archivoEncuesta10"
+                    accept=".csv,text/csv"
+                    hidden
+                >
+
+                <p
+                    id="nombreArchivoEncuesta10"
+                    class="nombre-archivo"
+                >
+                    Ningún archivo seleccionado.
+                </p>
+
+            </div>
+
+
+            <!-- ------------------------------------------------- -->
+            <!-- DIAGNÓSTICO CHILCA -->
+            <!-- ------------------------------------------------- -->
+
+            <div class="estadisticas encuesta10-estadisticas">
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero"
+                        id="totalEncuesta10"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        Respuestas leídas
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero valido"
+                        id="respuestasChilca10"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        Estudiantes Chilca
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero valido"
+                        id="respuestasCompletas10"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        Respuestas encontradas
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero"
+                        id="preguntasDetectadas10"
+                    >
+                        0/10
+                    </span>
+
+                    <span class="texto">
+                        Preguntas detectadas
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- ------------------------------------------------- -->
+            <!-- MENSAJE -->
+            <!-- ------------------------------------------------- -->
+
+            <div
+                id="mensajeEncuesta10"
+                class="mensaje"
+            >
+                Selecciona el CSV para comenzar.
+            </div>
+
+
+            <!-- ------------------------------------------------- -->
+            <!-- TABLA -->
+            <!-- ------------------------------------------------- -->
+
+            <div class="tabla-contenedor">
+
+                <table id="tablaEncuesta10">
+
+                    <thead></thead>
+
+                    <tbody></tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- ------------------------------------------------- -->
+            <!-- EXPORTACIÓN -->
+            <!-- ------------------------------------------------- -->
+
+            <div class="zona-exportacion">
+
+                <button
+                    id="btnExportarEncuesta10"
+                    class="boton-principal"
+                    disabled
+                >
+                    Descargar Excel de las 10 preguntas — Chilca
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- 7. ENCUESTA ESTRÉS ACADÉMICO 2026-2 -->
+        <!-- AMBOS GRUPOS -->
+        <!-- ===================================================== -->
+
+        <section class="tarjeta encuesta10-ambos-seccion">
+
+            <h2>
+                7. Encuesta: Estrés académico 2026-2 — Muestra completa
+            </h2>
+
+            <p class="descripcion">
+                Filtro independiente para extraer las 10 preguntas de la encuesta
+                considerando tanto a estudiantes de la sede Chilca de la UNMSM
+                como a quienes indicaron no pertenecer a dicha sede.
+            </p>
+
+
+            <!-- ------------------------------------------------- -->
+            <!-- REGLA DEL FILTRO -->
+            <!-- ------------------------------------------------- -->
+
+            <div class="regla">
+
+                <strong>
+                    Se aceptan ambos grupos de estudiantes.
+                </strong>
+
+                <p>
+                    El sistema no excluirá las respuestas según la sede indicada.
+                    Tanto quienes respondieron "Sí" como quienes respondieron "No"
+                    en la pregunta de pertenencia a la sede Chilca podrán ser incluidos.
+                </p>
+
+                <p>
+                    Para que una respuesta sea incluida, debe tener completas
+                    las 10 preguntas seleccionadas. Si una sola de ellas está
+                    vacía, toda la fila será descartada.
+                </p>
+
+
+                <label
+                    for="archivoEncuesta10Ambos"
+                    class="boton-archivo"
+                >
+                    Seleccionar CSV de la encuesta
+                </label>
+
+                <input
+                    type="file"
+                    id="archivoEncuesta10Ambos"
+                    accept=".csv,text/csv"
+                    hidden
+                >
+
+                <p
+                    id="nombreArchivoEncuesta10Ambos"
+                    class="nombre-archivo"
+                >
+                    Ningún archivo seleccionado.
+                </p>
+
+            </div>
+
+
+            <!-- ------------------------------------------------- -->
+            <!-- DIAGNÓSTICO AMBOS GRUPOS -->
+            <!-- ------------------------------------------------- -->
+
+            <div class="estadisticas encuesta10-ambos-estadisticas">
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero"
+                        id="totalEncuesta10Ambos"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        Respuestas leídas
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero valido"
+                        id="respuestasChilca10Ambos"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        Sí — Chilca
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero valido"
+                        id="respuestasNoChilca10Ambos"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        No — Otras sedes/universidades
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero valido"
+                        id="respuestasCompletas10Ambos"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        Respuestas completas
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero"
+                        id="respuestasDescartadas10Ambos"
+                    >
+                        0
+                    </span>
+
+                    <span class="texto">
+                        Descartadas por datos vacíos
+                    </span>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span
+                        class="numero"
+                        id="preguntasDetectadas10Ambos"
+                    >
+                        0/10
+                    </span>
+
+                    <span class="texto">
+                        Preguntas detectadas
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- ------------------------------------------------- -->
+            <!-- MENSAJE -->
+            <!-- ------------------------------------------------- -->
+
+            <div
+                id="mensajeEncuesta10Ambos"
+                class="mensaje"
+            >
+                Selecciona el CSV para comenzar.
+            </div>
+
+
+            <!-- ------------------------------------------------- -->
+            <!-- TABLA -->
+            <!-- ------------------------------------------------- -->
+
+            <div class="tabla-contenedor">
+
+                <table id="tablaEncuesta10Ambos">
+
+                    <thead></thead>
+
+                    <tbody></tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- ------------------------------------------------- -->
+            <!-- EXPORTACIÓN -->
+            <!-- ------------------------------------------------- -->
+
+            <div class="zona-exportacion">
+
+                <button
+                    id="btnExportarEncuesta10Ambos"
+                    class="boton-principal"
+                    disabled
+                >
+                    Descargar Excel de las 10 preguntas — Muestra completa
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ===================================================== -->
+        <!-- PIE DE PÁGINA -->
+        <!-- ===================================================== -->
+
+        <footer>
+
+            <p>
+                Sistema local de limpieza de datos — Encuesta UNMSM
+            </p>
+
+            <p>
+                Los datos se procesan directamente en este navegador.
+            </p>
+
+        </footer>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- JAVASCRIPT -->
+    <!-- Los scripts se cargan al final del body -->
+    <!-- ========================================================= -->
+
+    <!-- Sistema principal -->
+    <script src="app.js"></script>
+
+    <!-- Filtro independiente: solamente Chilca -->
+    <script src="encuesta10.js"></script>
+
+    <!-- Filtro independiente: Chilca + otros -->
+    <script src="encuesta10_ambos.js"></script>
+
+</body>
+
+</html>
