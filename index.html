@@ -4,6 +4,7 @@
 
 <head>
 
+```
 <meta charset="UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,13 +18,15 @@
 <!-- ========================================================= -->
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
+```
 
 </head>
 
 <body>
 
+```
 <div class="contenedor">
+
 
     <!-- ===================================================== -->
     <!-- ENCABEZADO PRINCIPAL -->
@@ -34,50 +37,28 @@
         <h1>Limpiador de Encuesta UNMSM</h1>
 
         <p>
-            Herramienta para limpiar, validar y organizar las respuestas
-            obtenidas desde Google Forms.
+            Herramienta para limpiar, validar y organizar automáticamente
+            las respuestas obtenidas desde Google Forms.
         </p>
 
     </header>
 
 
+
     <!-- ===================================================== -->
-    <!-- 1. CARGA DE RESPUESTAS -->
+    <!-- 1. FUENTE DE DATOS -->
     <!-- ===================================================== -->
 
     <section class="tarjeta">
 
-        <h2>1. Cargar respuestas</h2>
+        <h2>1. Fuente de datos</h2>
 
         <p class="descripcion">
 
-            Las respuestas de Google Forms se cargan automáticamente
-            desde Google Sheets.
+            Las respuestas se obtienen automáticamente desde Google Sheets,
+            conectado directamente con el formulario de la encuesta.
 
         </p>
-
-        <p class="descripcion">
-
-            Si la conexión con Google no está disponible, puedes utilizar
-            el archivo CSV como método alternativo.
-
-        </p>
-
-        <label
-            for="archivoCSV"
-            class="boton-archivo"
-        >
-
-            Seleccionar archivo CSV
-
-        </label>
-
-        <input
-            type="file"
-            id="archivoCSV"
-            accept=".csv,text/csv"
-            hidden
-        >
 
         <p
             id="nombreArchivo"
@@ -89,6 +70,7 @@
         </p>
 
     </section>
+
 
 
     <!-- ===================================================== -->
@@ -113,6 +95,7 @@
 
             </p>
 
+
             <div class="regla-datos">
 
                 <div>
@@ -123,6 +106,7 @@
 
                 </div>
 
+
                 <div>
 
                     <span>Filas anteriores</span>
@@ -130,6 +114,7 @@
                     <strong>Excluir</strong>
 
                 </div>
+
 
                 <div>
 
@@ -146,6 +131,7 @@
     </section>
 
 
+
     <!-- ===================================================== -->
     <!-- 3. DIAGNÓSTICO DEL LIMPIADOR GENERAL -->
     <!-- ===================================================== -->
@@ -155,6 +141,7 @@
         <h2>3. Diagnóstico</h2>
 
         <div class="estadisticas">
+
 
             <div class="estadistica">
 
@@ -170,6 +157,7 @@
                 </span>
 
             </div>
+
 
 
             <div class="estadistica">
@@ -188,6 +176,7 @@
             </div>
 
 
+
             <div class="estadistica">
 
                 <span
@@ -202,6 +191,7 @@
                 </span>
 
             </div>
+
 
 
             <div class="estadistica">
@@ -219,9 +209,11 @@
 
             </div>
 
+
         </div>
 
     </section>
+
 
 
     <!-- ===================================================== -->
@@ -241,6 +233,7 @@
 
         </div>
 
+
         <div class="tabla-contenedor">
 
             <table id="tablaPreview">
@@ -256,6 +249,7 @@
     </section>
 
 
+
     <!-- ===================================================== -->
     <!-- 5. EXPORTACIÓN DEL LIMPIADOR GENERAL -->
     <!-- ===================================================== -->
@@ -266,10 +260,11 @@
 
         <p class="descripcion">
 
-            El archivo Excel tendrá varias hojas para conservar tanto
-            las respuestas válidas como las respuestas descartadas.
+            El archivo Excel contendrá las respuestas válidas,
+            las respuestas excluidas y la información de diagnóstico.
 
         </p>
+
 
         <button
             id="btnExportar"
@@ -284,6 +279,7 @@
     </section>
 
 
+
     <!-- ===================================================== -->
     <!-- 6. ENCUESTA ESTRÉS ACADÉMICO 2026-2 -->
     <!-- SOLO ESTUDIANTES DE CHILCA -->
@@ -295,12 +291,15 @@
             6. Encuesta: Estrés académico 2026-2 — Sede Chilca
         </h2>
 
+
         <p class="descripcion">
 
-            Filtro independiente para extraer únicamente las 10 preguntas
-            de la encuesta aplicada a estudiantes de la sede Chilca de la UNMSM.
+            Filtro independiente que utiliza los datos obtenidos desde
+            Google Sheets para extraer únicamente las 10 preguntas
+            correspondientes a estudiantes de la sede Chilca de la UNMSM.
 
         </p>
+
 
 
         <!-- ------------------------------------------------- -->
@@ -315,6 +314,7 @@
 
             </strong>
 
+
             <p>
 
                 El sistema identificará las respuestas que indiquen
@@ -323,30 +323,13 @@
 
             </p>
 
+
             <p>
 
-                Además, las 10 preguntas seleccionadas deberán estar
-                completas para que la respuesta sea incluida.
+                Las 10 preguntas seleccionadas deberán estar completas
+                para que la respuesta sea incluida.
 
             </p>
-
-
-            <label
-                for="archivoEncuesta10"
-                class="boton-archivo"
-            >
-
-                Seleccionar CSV de la encuesta
-
-            </label>
-
-
-            <input
-                type="file"
-                id="archivoEncuesta10"
-                accept=".csv,text/csv"
-                hidden
-            >
 
 
             <p
@@ -354,12 +337,12 @@
                 class="nombre-archivo"
             >
 
-                Google Sheets se utilizará automáticamente.
-                El CSV queda disponible como respaldo.
+                Conectando con Google Sheets...
 
             </p>
 
         </div>
+
 
 
         <!-- ------------------------------------------------- -->
@@ -367,6 +350,7 @@
         <!-- ------------------------------------------------- -->
 
         <div class="estadisticas encuesta10-estadisticas">
+
 
             <div class="estadistica">
 
@@ -382,6 +366,7 @@
                 </span>
 
             </div>
+
 
 
             <div class="estadistica">
@@ -400,6 +385,7 @@
             </div>
 
 
+
             <div class="estadistica">
 
                 <span
@@ -414,6 +400,7 @@
                 </span>
 
             </div>
+
 
 
             <div class="estadistica">
@@ -431,7 +418,9 @@
 
             </div>
 
+
         </div>
+
 
 
         <!-- ------------------------------------------------- -->
@@ -446,6 +435,7 @@
             Conectando con Google Sheets...
 
         </div>
+
 
 
         <!-- ------------------------------------------------- -->
@@ -463,6 +453,7 @@
             </table>
 
         </div>
+
 
 
         <!-- ------------------------------------------------- -->
@@ -486,6 +477,7 @@
     </section>
 
 
+
     <!-- ===================================================== -->
     <!-- 7. ENCUESTA ESTRÉS ACADÉMICO 2026-2 -->
     <!-- AMBOS GRUPOS -->
@@ -497,13 +489,16 @@
             7. Encuesta: Estrés académico 2026-2 — Muestra completa
         </h2>
 
+
         <p class="descripcion">
 
-            Filtro independiente para extraer las 10 preguntas de la encuesta
+            Filtro independiente que utiliza los datos obtenidos desde
+            Google Sheets para extraer las 10 preguntas de la encuesta,
             considerando tanto a estudiantes de la sede Chilca de la UNMSM
             como a quienes indicaron no pertenecer a dicha sede.
 
         </p>
+
 
 
         <!-- ------------------------------------------------- -->
@@ -518,6 +513,7 @@
 
             </strong>
 
+
             <p>
 
                 El sistema no excluirá las respuestas según la sede indicada.
@@ -525,6 +521,7 @@
                 en la pregunta de pertenencia a la sede Chilca podrán ser incluidos.
 
             </p>
+
 
             <p>
 
@@ -535,35 +532,17 @@
             </p>
 
 
-            <label
-                for="archivoEncuesta10Ambos"
-                class="boton-archivo"
-            >
-
-                Seleccionar CSV de la encuesta
-
-            </label>
-
-
-            <input
-                type="file"
-                id="archivoEncuesta10Ambos"
-                accept=".csv,text/csv"
-                hidden
-            >
-
-
             <p
                 id="nombreArchivoEncuesta10Ambos"
                 class="nombre-archivo"
             >
 
-                Google Sheets se utilizará automáticamente.
-                El CSV queda disponible como respaldo.
+                Conectando con Google Sheets...
 
             </p>
 
         </div>
+
 
 
         <!-- ------------------------------------------------- -->
@@ -571,6 +550,7 @@
         <!-- ------------------------------------------------- -->
 
         <div class="estadisticas encuesta10-ambos-estadisticas">
+
 
             <div class="estadistica">
 
@@ -586,6 +566,7 @@
                 </span>
 
             </div>
+
 
 
             <div class="estadistica">
@@ -604,6 +585,7 @@
             </div>
 
 
+
             <div class="estadistica">
 
                 <span
@@ -618,6 +600,7 @@
                 </span>
 
             </div>
+
 
 
             <div class="estadistica">
@@ -636,6 +619,7 @@
             </div>
 
 
+
             <div class="estadistica">
 
                 <span
@@ -650,6 +634,7 @@
                 </span>
 
             </div>
+
 
 
             <div class="estadistica">
@@ -667,7 +652,9 @@
 
             </div>
 
+
         </div>
+
 
 
         <!-- ------------------------------------------------- -->
@@ -682,6 +669,7 @@
             Conectando con Google Sheets...
 
         </div>
+
 
 
         <!-- ------------------------------------------------- -->
@@ -699,6 +687,7 @@
             </table>
 
         </div>
+
 
 
         <!-- ------------------------------------------------- -->
@@ -722,6 +711,7 @@
     </section>
 
 
+
     <!-- ===================================================== -->
     <!-- PIE DE PÁGINA -->
     <!-- ===================================================== -->
@@ -730,19 +720,44 @@
 
         <p>
 
-            Sistema local de limpieza de datos — Encuesta UNMSM
+            Sistema automático de procesamiento — Encuesta UNMSM
 
         </p>
 
+
         <p>
 
-            Los datos se procesan directamente en este navegador.
+            Los datos se obtienen desde Google Sheets y se procesan
+            directamente en este navegador.
 
         </p>
 
     </footer>
 
+
 </div>
+
+
+
+<!-- ========================================================= -->
+<!-- JAVASCRIPT -->
+<!-- ========================================================= -->
+<!--
+    ORDEN IMPORTANTE:
+
+    1. datosGoogle.js
+       Obtiene los datos crudos de Google Sheets.
+
+    2. app.js
+       Aplica la regla general de selección.
+
+    3. encuesta10.js
+       Filtra exclusivamente estudiantes de Chilca.
+
+    4. encuesta10_ambos.js
+       Filtra la muestra completa.
+-->
+<!-- ========================================================= -->
 
 
 <script src="datosGoogle.js"></script>
@@ -752,6 +767,7 @@
 <script src="encuesta10.js"></script>
 
 <script src="encuesta10_ambos.js"></script>
+```
 
 </body>
 
